@@ -198,6 +198,7 @@ namespace edlib {
         /**
          * Number of different characters in query and target together.
          */
+         // TODO: (to be discussed) make a template of this struct with one argument type, AlphabetIdx. After that, change the type of alphabetLength to AlphabetIdx.
         int alphabetLength;
     } EdlibAlignResult;
 
