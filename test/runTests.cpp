@@ -4,7 +4,7 @@
 #include <cstring>
 #include <climits>
 
-#include "edlib.h"
+#include "edlib.hpp"
 #include "SimpleEditDistance.h"
 
 using namespace std;

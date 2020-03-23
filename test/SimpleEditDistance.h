@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <vector>
-#include "edlib.h"
+#include "edlib.hpp"
 
 using namespace std;
 

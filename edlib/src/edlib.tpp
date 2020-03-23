@@ -1,4 +1,4 @@
-#include "edlib.h"
+#include "edlib.hpp"
 
 #include <stdint.h>
 #include <cstdlib>

@@ -247,6 +247,6 @@ char* edlibAlignmentToCigar(const unsigned char* alignment, int alignmentLength,
                             EdlibCigarFormat cigarFormat);
 
 
-
+#include "edlib.tpp"
 
 #endif // EDLIB_H
