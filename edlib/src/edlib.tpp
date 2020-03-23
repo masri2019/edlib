@@ -126,8 +126,8 @@ static int obtainAlignmentTraceback(int queryLength, int targetLength,
                                     unsigned char** alignment, int* alignmentLength);
 
 template <class Element, class AlphabetIdx>
-static unordered_map<Element, AlphabetIdx> transformSequences(Element* queryOriginal, int queryLength,
-                                                              Element* targetOriginal, int targetLength,
+static unordered_map<Element, AlphabetIdx> transformSequences(const Element* queryOriginal, int queryLength,
+                                                              const Element* targetOriginal, int targetLength,
                                                               AlphabetIdx** queryTransformed,
                                                               AlphabetIdx** targetTransformed);
 
@@ -162,9 +162,9 @@ EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryL
 
     /*------------ TRANSFORM SEQUENCES AND RECOGNIZE ALPHABET -----------*/
     AlphabetIdx* query, * target;
-    unordered_map<Element,AlphabetIdx> alphabet = transformSequences<Element, AlphabetIdx>(queryOriginal, queryLength, targetOriginal, targetLength,
+    unordered_map<Element,AlphabetIdx> elementToAlphabetIdx = transformSequences<Element, AlphabetIdx>(queryOriginal, queryLength, targetOriginal, targetLength,
                                                                                            &query, &target);
-    result.alphabetLength = static_cast<int>(alphabet.size());
+    result.alphabetLength = static_cast<int>(elementToAlphabetIdx.size());
     /*-------------------------------------------------------*/
 
     // Handle special situation when at least one of the sequences has length 0.
@@ -191,9 +191,9 @@ EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryL
     /*--------------------- INITIALIZATION ------------------*/
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE); // bmax in Myers
     int W = maxNumBlocks * WORD_SIZE - queryLength; // number of redundant cells in last level blocks
-    //EqualityDefinition equalityDefinition(alphabet, config.additionalEqualities, config.additionalEqualitiesLength);
+    //EqualityDefinition equalityDefinition(elementToAlphabetIdx, config.additionalEqualities, config.additionalEqualitiesLength);
     EqualityDefinition<AlphabetIdx> equalityDefinition;
-    Word* Peq = buildPeq<AlphabetIdx>(static_cast<int>(alphabet.size()), query, queryLength, equalityDefinition);
+    Word* Peq = buildPeq<AlphabetIdx>(static_cast<int>(elementToAlphabetIdx.size()), query, queryLength, equalityDefinition);
     /*-------------------------------------------------------*/
     /*------------------ MAIN CALCULATION -------------------*/
     // TODO: Store alignment data only after k is determined? That could make things faster.
@@ -236,7 +236,7 @@ EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryL
                 const AlphabetIdx* rTarget = createReverseCopy<AlphabetIdx>(target, targetLength);
                 const AlphabetIdx* rQuery  = createReverseCopy<AlphabetIdx>(query, queryLength);
                 // Peq for reversed query.
-                Word* rPeq = buildPeq<AlphabetIdx>(static_cast<int>(alphabet.size()), rQuery, queryLength, equalityDefinition);
+                Word* rPeq = buildPeq<AlphabetIdx>(static_cast<int>(elementToAlphabetIdx.size()), rQuery, queryLength, equalityDefinition);
                 for (int i = 0; i < result.numLocations; i++) {
                     int endLocation = result.endLocations[i];
                     if (endLocation == -1) {
@@ -287,7 +287,7 @@ EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryL
             const AlphabetIdx* rQuery  = createReverseCopy<AlphabetIdx>(query, queryLength);
             obtainAlignment<AlphabetIdx>(query, rQuery, queryLength,
                                          alnTarget, rAlnTarget, alnTargetLength,
-                                         equalityDefinition, static_cast<int>(alphabet.size()), result.editDistance,
+                                         equalityDefinition, static_cast<int>(elementToAlphabetIdx.size()), result.editDistance,
                                          &(result.alignment), &(result.alignmentLength));
             delete[] rAlnTarget;
             delete[] rQuery;
@@ -1446,29 +1446,29 @@ static unordered_map<Element, AlphabetIdx> transformSequences(const Element* con
     *queryTransformed = static_cast<AlphabetIdx *>(malloc(sizeof(AlphabetIdx) * queryLength));
     *targetTransformed = static_cast<AlphabetIdx *>(malloc(sizeof(AlphabetIdx) * targetLength));
 
-    unordered_map<Element, AlphabetIdx> alphabetTable;
+    unordered_map<Element, AlphabetIdx> elementToAlphabetIdx;
 
     // Alphabet information, it is constructed on fly while transforming sequences.
-    // alphabetTable[c] is index of letter c in alphabet.
+    // elementToAlphabetIdx[c] is index of letter c in alphabet.
     AlphabetIdx currentSize =0 ;
     for (int i = 0; i < queryLength; i++) {
         Element c = queryOriginal[i];
-        if (alphabetTable.find(c) == alphabetTable.end()) {
-            alphabetTable[c] = currentSize;
+        if (elementToAlphabetIdx.find(c) == elementToAlphabetIdx.end()) {
+            elementToAlphabetIdx[c] = currentSize;
             currentSize++;
         }
-        (*queryTransformed)[i] = alphabetTable[c];
+        (*queryTransformed)[i] = elementToAlphabetIdx[c];
     }
     for (int i = 0; i < targetLength; i++) {
         Element c = targetOriginal[i];
-        if (alphabetTable.find(c) == alphabetTable.end()) {
-            alphabetTable[c] = currentSize;
+        if (elementToAlphabetIdx.find(c) == elementToAlphabetIdx.end()) {
+            elementToAlphabetIdx[c] = currentSize;
             currentSize++;
         }
-        (*targetTransformed)[i] = alphabetTable[c];
+        (*targetTransformed)[i] = elementToAlphabetIdx[c];
     }
 
-    return alphabetTable;
+    return elementToAlphabetIdx;
 }
 
 EdlibAlignConfig edlibNewAlignConfig(int k, EdlibAlignMode mode, EdlibAlignTask task,
