@@ -219,8 +219,9 @@ void edlibFreeAlignResult(EdlibAlignResult result);
  * @return  Result of alignment, which can contain edit distance, start and end locations and alignment path.
  *          Make sure to clean up the object using edlibFreeAlignResult() or by manually freeing needed members.
  */
-EdlibAlignResult edlibAlign(const char* query, int queryLength,
-                            const char* target, int targetLength,
+template <class Element, class AlphabetIdx>
+EdlibAlignResult edlibAlign(const Element* query, int queryLength,
+                            const Element* target, int targetLength,
                             const EdlibAlignConfig config);
 
 

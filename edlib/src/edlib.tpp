@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstring>
 #include <string>
+#include <unordered_map>
 
 using namespace std;
 
@@ -27,11 +28,11 @@ struct AlignmentData {
         // We build a complete table and mark first and last block for each column
         // (because algorithm is banded so only part of each columns is used).
         // TODO: do not build a whole table, but just enough blocks for each column.
-         Ps     = new Word[maxNumBlocks * targetLength];
-         Ms     = new Word[maxNumBlocks * targetLength];
-         scores = new  int[maxNumBlocks * targetLength];
-         firstBlocks = new int[targetLength];
-         lastBlocks  = new int[targetLength];
+        Ps     = new Word[maxNumBlocks * targetLength];
+        Ms     = new Word[maxNumBlocks * targetLength];
+        scores = new  int[maxNumBlocks * targetLength];
+        firstBlocks = new int[targetLength];
+        lastBlocks  = new int[targetLength];
     }
 
     ~AlignmentData() {
@@ -57,10 +58,11 @@ struct Block {
  * Defines equality relation on alphabet characters.
  * By default each character is always equal only to itself, but you can also provide additional equalities.
  */
+template <class AlphabetIdx>
 class EqualityDefinition {
 private:
     bool matrix[MAX_UCHAR + 1][MAX_UCHAR + 1];
-public:
+public:/*
     EqualityDefinition(const string& alphabet,
                        const EdlibEqualityPair* additionalEqualities = NULL,
                        const int additionalEqualitiesLength = 0) {
@@ -78,69 +80,77 @@ public:
                 }
             }
         }
-    }
+    }*/
 
     /**
      * @param a  Element from transformed sequence.
      * @param b  Element from transformed sequence.
      * @return True if a and b are defined as equal, false otherwise.
      */
-    bool areEqual(unsigned char a, unsigned char b) const {
-        return matrix[a][b];
+    bool areEqual(AlphabetIdx a, AlphabetIdx b) const {
+        return a == b;
     }
 };
 
+template <class AlphabetIdx>
 static int myersCalcEditDistanceSemiGlobal(const Word* Peq, int W, int maxNumBlocks,
                                            int queryLength,
-                                           const unsigned char* target, int targetLength,
+                                           const AlphabetIdx* target, int targetLength,
                                            int k, EdlibAlignMode mode,
                                            int* bestScore_, int** positions_, int* numPositions_);
 
+template <class AlphabetIdx>
 static int myersCalcEditDistanceNW(const Word* Peq, int W, int maxNumBlocks,
                                    int queryLength,
-                                   const unsigned char* target, int targetLength,
+                                   const AlphabetIdx* target, int targetLength,
                                    int k, int* bestScore_,
                                    int* position_, bool findAlignment,
                                    AlignmentData** alignData, int targetStopPosition);
 
-
+template <class AlphabetIdx>
 static int obtainAlignment(
-        const unsigned char* query, const unsigned char* rQuery, int queryLength,
-        const unsigned char* target, const unsigned char* rTarget, int targetLength,
-        const EqualityDefinition& equalityDefinition, int alphabetLength, int bestScore,
+        const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
+        const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
+        const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
         unsigned char** alignment, int* alignmentLength);
 
+template <class AlphabetIdx>
 static int obtainAlignmentHirschberg(
-        const unsigned char* query, const unsigned char* rQuery, int queryLength,
-        const unsigned char* target, const unsigned char* rTarget, int targetLength,
-        const EqualityDefinition& equalityDefinition, int alphabetLength, int bestScore,
+        const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
+        const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
+        const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
         unsigned char** alignment, int* alignmentLength);
 
 static int obtainAlignmentTraceback(int queryLength, int targetLength,
                                     int bestScore, const AlignmentData* alignData,
                                     unsigned char** alignment, int* alignmentLength);
 
-static string transformSequences(const char* queryOriginal, int queryLength,
-                                 const char* targetOriginal, int targetLength,
-                                 unsigned char** queryTransformed,
-                                 unsigned char** targetTransformed);
+template <class Element, class AlphabetIdx>
+static unordered_map<Element, AlphabetIdx> transformSequences(Element* queryOriginal, int queryLength,
+                                                              Element* targetOriginal, int targetLength,
+                                                              AlphabetIdx** queryTransformed,
+                                                              AlphabetIdx** targetTransformed);
 
 static inline int ceilDiv(int x, int y);
 
-static inline unsigned char* createReverseCopy(const unsigned char* seq, int length);
+template <class AlphabetIdx>
+static inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
 
+template <class AlphabetIdx>
 static inline Word* buildPeq(const int alphabetLength,
-                             const unsigned char* query,
+                             const AlphabetIdx* query,
                              const int queryLength,
-                             const EqualityDefinition& equalityDefinition);
+                             const EqualityDefinition<AlphabetIdx>& equalityDefinition);
+
 
 
 /**
  * Main edlib method.
  */
-EdlibAlignResult edlibAlign(const char* const queryOriginal, const int queryLength,
-                                       const char* const targetOriginal, const int targetLength,
-                                       const EdlibAlignConfig config) {
+template <class Element, class AlphabetIdx>
+EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryLength,
+                            const Element* const targetOriginal, const int targetLength,
+                            const EdlibAlignConfig config) {
     EdlibAlignResult result;
     result.status = EDLIB_STATUS_OK;
     result.editDistance = -1;
@@ -151,9 +161,9 @@ EdlibAlignResult edlibAlign(const char* const queryOriginal, const int queryLeng
     result.alphabetLength = 0;
 
     /*------------ TRANSFORM SEQUENCES AND RECOGNIZE ALPHABET -----------*/
-    unsigned char* query, * target;
-    string alphabet = transformSequences(queryOriginal, queryLength, targetOriginal, targetLength,
-                                         &query, &target);
+    AlphabetIdx* query, * target;
+    unordered_map<Element,AlphabetIdx> alphabet = transformSequences<Element, AlphabetIdx>(queryOriginal, queryLength, targetOriginal, targetLength,
+                                                                                           &query, &target);
     result.alphabetLength = static_cast<int>(alphabet.size());
     /*-------------------------------------------------------*/
 
@@ -181,10 +191,10 @@ EdlibAlignResult edlibAlign(const char* const queryOriginal, const int queryLeng
     /*--------------------- INITIALIZATION ------------------*/
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE); // bmax in Myers
     int W = maxNumBlocks * WORD_SIZE - queryLength; // number of redundant cells in last level blocks
-    EqualityDefinition equalityDefinition(alphabet, config.additionalEqualities, config.additionalEqualitiesLength);
-    Word* Peq = buildPeq(static_cast<int>(alphabet.size()), query, queryLength, equalityDefinition);
+    //EqualityDefinition equalityDefinition(alphabet, config.additionalEqualities, config.additionalEqualitiesLength);
+    EqualityDefinition<AlphabetIdx> equalityDefinition;
+    Word* Peq = buildPeq<AlphabetIdx>(static_cast<int>(alphabet.size()), query, queryLength, equalityDefinition);
     /*-------------------------------------------------------*/
-
     /*------------------ MAIN CALCULATION -------------------*/
     // TODO: Store alignment data only after k is determined? That could make things faster.
     int positionNW; // Used only when mode is NW.
@@ -198,15 +208,15 @@ EdlibAlignResult edlibAlign(const char* const queryOriginal, const int queryLeng
 
     do {
         if (config.mode == EDLIB_MODE_HW || config.mode == EDLIB_MODE_SHW) {
-            myersCalcEditDistanceSemiGlobal(Peq, W, maxNumBlocks,
-                                            queryLength, target, targetLength,
-                                            k, config.mode, &(result.editDistance),
-                                            &(result.endLocations), &(result.numLocations));
+            myersCalcEditDistanceSemiGlobal<AlphabetIdx>(Peq, W, maxNumBlocks,
+                                                         queryLength, target, targetLength,
+                                                         k, config.mode, &(result.editDistance),
+                                                         &(result.endLocations), &(result.numLocations));
         } else {  // mode == EDLIB_MODE_NW
-            myersCalcEditDistanceNW(Peq, W, maxNumBlocks,
-                                    queryLength, target, targetLength,
-                                    k, &(result.editDistance), &positionNW,
-                                    false, &alignData, -1);
+            myersCalcEditDistanceNW<AlphabetIdx>(Peq, W, maxNumBlocks,
+                                                 queryLength, target, targetLength,
+                                                 k, &(result.editDistance), &positionNW,
+                                                 false, &alignData, -1);
         }
         k *= 2;
     } while(dynamicK && result.editDistance == -1);
@@ -223,10 +233,10 @@ EdlibAlignResult edlibAlign(const char* const queryOriginal, const int queryLeng
         if (config.task == EDLIB_TASK_LOC || config.task == EDLIB_TASK_PATH) {
             result.startLocations = static_cast<int *>(malloc(result.numLocations * sizeof(int)));
             if (config.mode == EDLIB_MODE_HW) {  // If HW, I need to calculate start locations.
-                const unsigned char* rTarget = createReverseCopy(target, targetLength);
-                const unsigned char* rQuery  = createReverseCopy(query, queryLength);
+                const AlphabetIdx* rTarget = createReverseCopy<AlphabetIdx>(target, targetLength);
+                const AlphabetIdx* rQuery  = createReverseCopy<AlphabetIdx>(query, queryLength);
                 // Peq for reversed query.
-                Word* rPeq = buildPeq(static_cast<int>(alphabet.size()), rQuery, queryLength, equalityDefinition);
+                Word* rPeq = buildPeq<AlphabetIdx>(static_cast<int>(alphabet.size()), rQuery, queryLength, equalityDefinition);
                 for (int i = 0; i < result.numLocations; i++) {
                     int endLocation = result.endLocations[i];
                     if (endLocation == -1) {
@@ -245,7 +255,7 @@ EdlibAlignResult edlibAlign(const char* const queryOriginal, const int queryLeng
                     } else {
                         int bestScoreSHW, numPositionsSHW;
                         int* positionsSHW;
-                        myersCalcEditDistanceSemiGlobal(
+                        myersCalcEditDistanceSemiGlobal<AlphabetIdx>(
                                 rPeq, W, maxNumBlocks,
                                 queryLength, rTarget + targetLength - endLocation - 1, endLocation + 1,
                                 result.editDistance, EDLIB_MODE_SHW,
@@ -271,14 +281,14 @@ EdlibAlignResult edlibAlign(const char* const queryOriginal, const int queryLeng
         if (config.task == EDLIB_TASK_PATH) {
             int alnStartLocation = result.startLocations[0];
             int alnEndLocation = result.endLocations[0];
-            const unsigned char* alnTarget = target + alnStartLocation;
+            const AlphabetIdx* alnTarget = target + alnStartLocation;
             const int alnTargetLength = alnEndLocation - alnStartLocation + 1;
-            const unsigned char* rAlnTarget = createReverseCopy(alnTarget, alnTargetLength);
-            const unsigned char* rQuery  = createReverseCopy(query, queryLength);
-            obtainAlignment(query, rQuery, queryLength,
-                            alnTarget, rAlnTarget, alnTargetLength,
-                            equalityDefinition, static_cast<int>(alphabet.size()), result.editDistance,
-                            &(result.alignment), &(result.alignmentLength));
+            const AlphabetIdx* rAlnTarget = createReverseCopy<AlphabetIdx>(alnTarget, alnTargetLength);
+            const AlphabetIdx* rQuery  = createReverseCopy<AlphabetIdx>(query, queryLength);
+            obtainAlignment<AlphabetIdx>(query, rQuery, queryLength,
+                                         alnTarget, rAlnTarget, alnTargetLength,
+                                         equalityDefinition, static_cast<int>(alphabet.size()), result.editDistance,
+                                         &(result.alignment), &(result.alignmentLength));
             delete[] rAlnTarget;
             delete[] rQuery;
         }
@@ -296,7 +306,7 @@ EdlibAlignResult edlibAlign(const char* const queryOriginal, const int queryLeng
 }
 
 char* edlibAlignmentToCigar(const unsigned char* const alignment, const int alignmentLength,
-                                       const EdlibCigarFormat cigarFormat) {
+                            const EdlibCigarFormat cigarFormat) {
     if (cigarFormat != EDLIB_CIGAR_EXTENDED && cigarFormat != EDLIB_CIGAR_STANDARD) {
         return 0;
     }
@@ -352,16 +362,17 @@ char* edlibAlignmentToCigar(const unsigned char* const alignment, const int alig
  * Bit i of Peq[s * maxNumBlocks + b] is 1 if i-th symbol from block b of query equals symbol s, otherwise it is 0.
  * NOTICE: free returned array with delete[]!
  */
+template <class AlphabetIdx>
 static inline Word* buildPeq(const int alphabetLength,
-                             const unsigned char* const query,
+                             const AlphabetIdx* const query,
                              const int queryLength,
-                             const EqualityDefinition& equalityDefinition) {
+                             const EqualityDefinition<AlphabetIdx>& equalityDefinition) {
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
     // table of dimensions alphabetLength+1 x maxNumBlocks. Last symbol is wildcard.
     Word* Peq = new Word[(alphabetLength + 1) * maxNumBlocks];
 
     // Build Peq (1 is match, 0 is mismatch). NOTE: last column is wildcard(symbol that matches anything) with just 1s
-    for (unsigned char symbol = 0; symbol <= alphabetLength; symbol++) {
+    for (AlphabetIdx symbol = 0; symbol <= alphabetLength; symbol++) {
         for (int b = 0; b < maxNumBlocks; b++) {
             if (symbol < alphabetLength) {
                 Peq[symbol * maxNumBlocks + b] = 0;
@@ -385,8 +396,9 @@ static inline Word* buildPeq(const int alphabetLength,
  * Returns new sequence that is reverse of given sequence.
  * Free returned array with delete[].
  */
-static inline unsigned char* createReverseCopy(const unsigned char* const seq, const int length) {
-    unsigned char* rSeq = new unsigned char[length];
+template <class AlphabetIdx>
+static inline AlphabetIdx* createReverseCopy(const AlphabetIdx* const seq, const int length) {
+    AlphabetIdx* rSeq = new AlphabetIdx[length];
     for (int i = 0; i < length; i++) {
         rSeq[i] = seq[length - i - 1];
     }
@@ -544,10 +556,12 @@ static inline bool allBlockCellsLarger(const Block block, const int k) {
  * @param [out] numPositions_  Number of positions in the positions_ array.
  * @return Status.
  */
+
+template <class AlphabetIdx>
 static int myersCalcEditDistanceSemiGlobal(
         const Word* const Peq, const int W, const int maxNumBlocks,
         const int queryLength,
-        const unsigned char* const target, const int targetLength,
+        const AlphabetIdx* const target, const int targetLength,
         int k, const EdlibAlignMode mode,
         int* const bestScore_, int** const positions_, int* const numPositions_) {
     *positions_ = NULL;
@@ -582,9 +596,9 @@ static int myersCalcEditDistanceSemiGlobal(
     int bestScore = -1;
     vector<int> positions; // TODO: Maybe put this on heap?
     const int startHout = mode == EDLIB_MODE_HW ? 0 : 1; // If 0 then gap before query is not penalized;
-    const unsigned char* targetChar = target;
+    const AlphabetIdx* targetElement = target;
     for (int c = 0; c < targetLength; c++) { // for each column
-        const Word* Peq_c = Peq + (*targetChar) * maxNumBlocks;
+        const Word* Peq_c = Peq + (*targetElement) * maxNumBlocks;
 
         //----------------------- Calculate column -------------------------//
         int hout = startHout;
@@ -673,7 +687,7 @@ static int myersCalcEditDistanceSemiGlobal(
         }
         //------------------------------------------------------------------//
 
-        targetChar++;
+        targetElement++;
     }
 
 
@@ -727,9 +741,10 @@ static int myersCalcEditDistanceSemiGlobal(
  *         and column p is returned as the only column in alignData.
  * @return Status.
  */
+template <class AlphabetIdx>
 static int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int maxNumBlocks,
                                    const int queryLength,
-                                   const unsigned char* const target, const int targetLength,
+                                   const AlphabetIdx* const target, const int targetLength,
                                    int k, int* const bestScore_,
                                    int* const position_, const bool findAlignment,
                                    AlignmentData** const alignData, const int targetStopPosition) {
@@ -774,9 +789,9 @@ static int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int
     else
         *alignData = NULL;
 
-    const unsigned char* targetChar = target;
+    const AlphabetIdx* targetElement = target;
     for (int c = 0; c < targetLength; c++) { // for each column
-        const Word* Peq_c = Peq + *targetChar * maxNumBlocks;
+        const Word* Peq_c = Peq + *targetElement * maxNumBlocks;
 
         //----------------------- Calculate column -------------------------//
         int hout = 1;
@@ -793,16 +808,16 @@ static int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int
         // Update k. I do it only on end of column because it would slow calculation too much otherwise.
         // NOTICE: I add W when in last block because it is actually result from W cells to the left and W cells up.
         k = min(k, bl->score
-                + max(targetLength - c - 1, queryLength - ((1 + lastBlock) * WORD_SIZE - 1) - 1)
-                + (lastBlock == maxNumBlocks - 1 ? W : 0));
+                   + max(targetLength - c - 1, queryLength - ((1 + lastBlock) * WORD_SIZE - 1) - 1)
+                   + (lastBlock == maxNumBlocks - 1 ? W : 0));
 
         //---------- Adjust number of blocks according to Ukkonen ----------//
         //--- Adjust last block ---//
         // If block is not beneath band, calculate next block. Only next because others are certainly beneath band.
         if (lastBlock + 1 < maxNumBlocks
             && !(//score[lastBlock] >= k + WORD_SIZE ||  // NOTICE: this condition could be satisfied if above block also!
-                 ((lastBlock + 1) * WORD_SIZE - 1
-                  > k - bl->score + 2 * WORD_SIZE - 2 - targetLength + c + queryLength))) {
+                ((lastBlock + 1) * WORD_SIZE - 1
+                 > k - bl->score + 2 * WORD_SIZE - 2 - targetLength + c + queryLength))) {
             lastBlock++; bl++;
             bl->P = static_cast<Word>(-1); // All 1s
             bl->M = static_cast<Word>(0);
@@ -911,7 +926,7 @@ static int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int
         }
         //----------------------------------------------------//
 
-        targetChar++;
+        targetElement++;
     }
 
     if (lastBlock == maxNumBlocks - 1) { // If last block of last column was calculated
@@ -1053,7 +1068,7 @@ static int obtainAlignmentTraceback(const int queryLength, const int targetLengt
             // Mark move
             (*alignment)[(*alignmentLength)++] = EDLIB_EDOP_INSERT;
         }
-        // Move left - deletion from target - insertion to query
+            // Move left - deletion from target - insertion to query
         else if (lScore != -1 && lScore + 1 == currScore) {
             currScore = lScore;
             uScore = ulScore;
@@ -1084,7 +1099,7 @@ static int obtainAlignmentTraceback(const int queryLength, const int targetLengt
             // Mark move
             (*alignment)[(*alignmentLength)++] = EDLIB_EDOP_DELETE;
         }
-        // Move up left - (mis)match
+            // Move up left - (mis)match
         else if (ulScore != -1) {
             unsigned char moveCode = ulScore == currScore ? EDLIB_EDOP_MATCH : EDLIB_EDOP_MISMATCH;
             currScore = ulScore;
@@ -1161,10 +1176,11 @@ static int obtainAlignmentTraceback(const int queryLength, const int targetLengt
  * @param [out] alignmentLength  Length of alignment.
  * @return Status code.
  */
+template <class AlphabetIdx>
 static int obtainAlignment(
-        const unsigned char* const query, const unsigned char* const rQuery, const int queryLength,
-        const unsigned char* const target, const unsigned char* const rTarget, const int targetLength,
-        const EqualityDefinition& equalityDefinition, const int alphabetLength, const int bestScore,
+        const AlphabetIdx* const query, const AlphabetIdx* const rQuery, const int queryLength,
+        const AlphabetIdx* const target, const AlphabetIdx* const rTarget, const int targetLength,
+        const EqualityDefinition<AlphabetIdx>& equalityDefinition, const int alphabetLength, const int bestScore,
         unsigned char** const alignment, int* const alignmentLength) {
 
     // Handle special case when one of sequences has length of 0.
@@ -1189,16 +1205,16 @@ static int obtainAlignment(
     // If estimated memory consumption for traceback algorithm is smaller than 1MB use it,
     // otherwise use Hirschberg's algorithm. By running few tests I choose boundary of 1MB as optimal.
     long long alignmentDataSize = (2ll * sizeof(Word) + sizeof(int)) * maxNumBlocks * targetLength
-        + 2ll * sizeof(int) * targetLength;
+                                  + 2ll * sizeof(int) * targetLength;
     if (alignmentDataSize < 1024 * 1024) {
         int score_, endLocation_;  // Used only to call function.
         AlignmentData* alignData = NULL;
-        Word* Peq = buildPeq(alphabetLength, query, queryLength, equalityDefinition);
-        myersCalcEditDistanceNW(Peq, W, maxNumBlocks,
-                                queryLength,
-                                target, targetLength,
-                                bestScore,
-                                &score_, &endLocation_, true, &alignData, -1);
+        Word* Peq = buildPeq<AlphabetIdx>(alphabetLength, query, queryLength, equalityDefinition);
+        myersCalcEditDistanceNW<AlphabetIdx>(Peq, W, maxNumBlocks,
+                                             queryLength,
+                                             target, targetLength,
+                                             bestScore,
+                                             &score_, &endLocation_, true, &alignData, -1);
         //assert(score_ == bestScore);
         //assert(endLocation_ == targetLength - 1);
 
@@ -1207,10 +1223,10 @@ static int obtainAlignment(
         delete alignData;
         delete[] Peq;
     } else {
-        statusCode = obtainAlignmentHirschberg(query, rQuery, queryLength,
-                                               target, rTarget, targetLength,
-                                               equalityDefinition, alphabetLength, bestScore,
-                                               alignment, alignmentLength);
+        statusCode = obtainAlignmentHirschberg<AlphabetIdx>(query, rQuery, queryLength,
+                                                            target, rTarget, targetLength,
+                                                            equalityDefinition, alphabetLength, bestScore,
+                                                            alignment, alignmentLength);
     }
     return statusCode;
 }
@@ -1231,17 +1247,18 @@ static int obtainAlignment(
  * @param [out] alignmentLength  Length of alignment.
  * @return Status code.
  */
+template <class AlphabetIdx>
 static int obtainAlignmentHirschberg(
-        const unsigned char* const query, const unsigned char* const rQuery, const int queryLength,
-        const unsigned char* const target, const unsigned char* const rTarget, const int targetLength,
-        const EqualityDefinition& equalityDefinition, const int alphabetLength, const int bestScore,
+        const AlphabetIdx* const query, const AlphabetIdx* const rQuery, const int queryLength,
+        const AlphabetIdx* const target, const AlphabetIdx* const rTarget, const int targetLength,
+        const EqualityDefinition<AlphabetIdx>& equalityDefinition, const int alphabetLength, const int bestScore,
         unsigned char** const alignment, int* const alignmentLength) {
 
     const int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
     const int W = maxNumBlocks * WORD_SIZE - queryLength;
 
-    Word* Peq = buildPeq(alphabetLength, query, queryLength, equalityDefinition);
-    Word* rPeq = buildPeq(alphabetLength, rQuery, queryLength, equalityDefinition);
+    Word* Peq = buildPeq<AlphabetIdx>(alphabetLength, query, queryLength, equalityDefinition);
+    Word* rPeq = buildPeq<AlphabetIdx>(alphabetLength, rQuery, queryLength, equalityDefinition);
 
     // Used only to call functions.
     int score_, endLocation_;
@@ -1252,13 +1269,13 @@ static int obtainAlignmentHirschberg(
 
     // Calculate left half.
     AlignmentData* alignDataLeftHalf = NULL;
-    int leftHalfCalcStatus = myersCalcEditDistanceNW(
+    int leftHalfCalcStatus = myersCalcEditDistanceNW<AlphabetIdx>(
             Peq, W, maxNumBlocks, queryLength, target, targetLength, bestScore,
             &score_, &endLocation_, false, &alignDataLeftHalf, leftHalfWidth - 1);
 
     // Calculate right half.
     AlignmentData* alignDataRightHalf = NULL;
-    int rightHalfCalcStatus = myersCalcEditDistanceNW(
+    int rightHalfCalcStatus = myersCalcEditDistanceNW<AlphabetIdx>(
             rPeq, W, maxNumBlocks, queryLength, rTarget, targetLength, bestScore,
             &score_, &endLocation_, false, &alignDataRightHalf, rightHalfWidth - 1);
 
@@ -1323,7 +1340,7 @@ static int obtainAlignmentHirschberg(
     //   |x
     int queryIdxLeftStart = max(scoresLeftStartIdx, scoresRightStartIdx - 1);
     int queryIdxLeftEnd = min(scoresLeftStartIdx + scoresLeftLength - 1,
-                          scoresRightStartIdx + scoresRightLength - 2);
+                              scoresRightStartIdx + scoresRightLength - 2);
     int leftScore = -1, rightScore = -1;
     int queryIdxLeftAlignment = -1;  // Query/row index of cell in left column where alignment is passing through.
     bool queryIdxLeftAlignmentFound = false;
@@ -1372,15 +1389,15 @@ static int obtainAlignmentHirschberg(
     const int ulWidth = leftHalfWidth;
     const int lrWidth = rightHalfWidth;
     unsigned char* ulAlignment = NULL; int ulAlignmentLength;
-    int ulStatusCode = obtainAlignment(query, rQuery + lrHeight, ulHeight,
-                                       target, rTarget + lrWidth, ulWidth,
-                                       equalityDefinition, alphabetLength, leftScore,
-                                       &ulAlignment, &ulAlignmentLength);
+    int ulStatusCode = obtainAlignment<AlphabetIdx>(query, rQuery + lrHeight, ulHeight,
+                                                    target, rTarget + lrWidth, ulWidth,
+                                                    equalityDefinition, alphabetLength, leftScore,
+                                                    &ulAlignment, &ulAlignmentLength);
     unsigned char* lrAlignment = NULL; int lrAlignmentLength;
-    int lrStatusCode = obtainAlignment(query + ulHeight, rQuery, lrHeight,
-                                       target + ulWidth, rTarget, lrWidth,
-                                       equalityDefinition, alphabetLength, rightScore,
-                                       &lrAlignment, &lrAlignmentLength);
+    int lrStatusCode = obtainAlignment<AlphabetIdx>(query + ulHeight, rQuery, lrHeight,
+                                                    target + ulWidth, rTarget, lrWidth,
+                                                    equalityDefinition, alphabetLength, rightScore,
+                                                    &lrAlignment, &lrAlignmentLength);
     if (ulStatusCode == EDLIB_STATUS_ERROR || lrStatusCode == EDLIB_STATUS_ERROR) {
         if (ulAlignment) free(ulAlignment);
         if (lrAlignment) free(lrAlignment);
@@ -1417,51 +1434,46 @@ static int obtainAlignmentHirschberg(
  * @return  Alphabet as a string of unique characters, where index of each character is its value in transformed
  *          sequences.
  */
-static string transformSequences(const char* const queryOriginal, const int queryLength,
-                                 const char* const targetOriginal, const int targetLength,
-                                 unsigned char** const queryTransformed,
-                                 unsigned char** const targetTransformed) {
+template <class Element, class AlphabetIdx>
+static unordered_map<Element, AlphabetIdx> transformSequences(const Element* const queryOriginal, const int queryLength,
+                                                              const Element* const targetOriginal, const int targetLength,
+                                                              AlphabetIdx** const queryTransformed,
+                                                              AlphabetIdx** const targetTransformed) {
     // Alphabet is constructed from letters that are present in sequences.
     // Each letter is assigned an ordinal number, starting from 0 up to alphabetLength - 1,
     // and new query and target are created in which letters are replaced with their ordinal numbers.
     // This query and target are used in all the calculations later.
-    *queryTransformed = static_cast<unsigned char *>(malloc(sizeof(unsigned char) * queryLength));
-    *targetTransformed = static_cast<unsigned char *>(malloc(sizeof(unsigned char) * targetLength));
+    *queryTransformed = static_cast<AlphabetIdx *>(malloc(sizeof(AlphabetIdx) * queryLength));
+    *targetTransformed = static_cast<AlphabetIdx *>(malloc(sizeof(AlphabetIdx) * targetLength));
 
-    string alphabet = "";
+    unordered_map<Element, AlphabetIdx> alphabetTable;
 
     // Alphabet information, it is constructed on fly while transforming sequences.
-    // letterIdx[c] is index of letter c in alphabet.
-    unsigned char letterIdx[MAX_UCHAR + 1];
-    bool inAlphabet[MAX_UCHAR + 1]; // inAlphabet[c] is true if c is in alphabet
-    for (int i = 0; i < MAX_UCHAR + 1; i++) inAlphabet[i] = false;
-
+    // alphabetTable[c] is index of letter c in alphabet.
+    AlphabetIdx currentSize =0 ;
     for (int i = 0; i < queryLength; i++) {
-        unsigned char c = static_cast<unsigned char>(queryOriginal[i]);
-        if (!inAlphabet[c]) {
-            inAlphabet[c] = true;
-            letterIdx[c] = static_cast<unsigned char>(alphabet.size());
-            alphabet += queryOriginal[i];
+        Element c = queryOriginal[i];
+        if (alphabetTable.find(c) == alphabetTable.end()) {
+            alphabetTable[c] = currentSize;
+            currentSize++;
         }
-        (*queryTransformed)[i] = letterIdx[c];
+        (*queryTransformed)[i] = alphabetTable[c];
     }
     for (int i = 0; i < targetLength; i++) {
-        unsigned char c = static_cast<unsigned char>(targetOriginal[i]);
-        if (!inAlphabet[c]) {
-            inAlphabet[c] = true;
-            letterIdx[c] = static_cast<unsigned char>(alphabet.size());
-            alphabet += targetOriginal[i];
+        Element c = targetOriginal[i];
+        if (alphabetTable.find(c) == alphabetTable.end()) {
+            alphabetTable[c] = currentSize;
+            currentSize++;
         }
-        (*targetTransformed)[i] = letterIdx[c];
+        (*targetTransformed)[i] = alphabetTable[c];
     }
 
-    return alphabet;
+    return alphabetTable;
 }
 
-
 EdlibAlignConfig edlibNewAlignConfig(int k, EdlibAlignMode mode, EdlibAlignTask task,
-                                                EdlibEqualityPair* additionalEqualities,
-                                                int additionalEqualitiesLength) {
+                                     EdlibEqualityPair* additionalEqualities,
+                                     int additionalEqualitiesLength) {
     EdlibAlignConfig config;
     config.k = k;
     config.mode = mode;
