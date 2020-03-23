@@ -1,6 +1,8 @@
 #ifndef EDLIB_HPP
 #define EDLIB_HPP
 
+#include <stdint.h>
+
 /**
  * @file
  * @author Martin Sosic
@@ -221,7 +223,7 @@ namespace edlib {
      * @return  Result of alignment, which can contain edit distance, start and end locations and alignment path.
      *          Make sure to clean up the object using edlibFreeAlignResult() or by manually freeing needed members.
      */
-    template<class Element, class AlphabetIdx>
+    template<class Element, class AlphabetIdx=uint32_t>
     EdlibAlignResult edlibAlign(const Element *query, int queryLength,
                                 const Element *target, int targetLength,
                                 const EdlibAlignConfig config);
