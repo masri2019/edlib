@@ -370,7 +370,7 @@ char* edlib::edlibAlignmentToCigar(const unsigned char* const alignment, const i
 template <class AlphabetIdx>
 static inline edlib::internal::Word* edlib::internal::buildPeq(const int alphabetLength, const AlphabetIdx *query,
                                                                const int queryLength,
-                                                               const edlib::internal::EqualityDefinition<AlphabetIdx> &equalityDefinition){
+                                                               const EqualityDefinition<AlphabetIdx> &equalityDefinition){
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
     // table of dimensions alphabetLength+1 x maxNumBlocks. Last symbol is wildcard.
     Word* Peq = new Word[(alphabetLength + 1) * maxNumBlocks];
