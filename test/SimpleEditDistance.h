@@ -7,10 +7,8 @@
 #include "edlib.hpp"
 
 using namespace std;
+using namespace edlib;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 int min(int x, int y) {
@@ -106,9 +104,5 @@ int calcEditDistanceSimple(const char* query, int queryLength,
 }
 
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // SIMPLE_EDIT_DISTANCE_H
