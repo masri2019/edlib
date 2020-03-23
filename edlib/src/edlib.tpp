@@ -87,6 +87,7 @@ public:/*
      * @param b  Element from transformed sequence.
      * @return True if a and b are defined as equal, false otherwise.
      */
+     // TODO: We need to implement areEqual later (to support additional equalities)
     bool areEqual(AlphabetIdx a, AlphabetIdx b) const {
         return a == b;
     }
@@ -191,6 +192,7 @@ EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryL
     /*--------------------- INITIALIZATION ------------------*/
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE); // bmax in Myers
     int W = maxNumBlocks * WORD_SIZE - queryLength; // number of redundant cells in last level blocks
+    // TODO: According to the future implementation of EqualityDefinition we need to modify instantiation
     //EqualityDefinition equalityDefinition(elementToAlphabetIdx, config.additionalEqualities, config.additionalEqualitiesLength);
     EqualityDefinition<AlphabetIdx> equalityDefinition;
     Word* Peq = buildPeq<AlphabetIdx>(static_cast<int>(elementToAlphabetIdx.size()), query, queryLength, equalityDefinition);
