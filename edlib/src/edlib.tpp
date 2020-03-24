@@ -112,14 +112,14 @@ namespace edlib {
         static int obtainAlignment(
                 const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
                 const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
-                const EqualityDefinition<AlphabetIdx> &equalityDefinition, int alphabetLength, int bestScore,
+                const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
                 unsigned char** alignment, int* alignmentLength);
 
         template<class AlphabetIdx>
         static int obtainAlignmentHirschberg(
                 const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
                 const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
-                const EqualityDefinition<AlphabetIdx> &equalityDefinition, int alphabetLength, int bestScore,
+                const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
                 unsigned char** alignment, int* alignmentLength);
 
         static int obtainAlignmentTraceback(int queryLength, int targetLength,
@@ -142,7 +142,7 @@ namespace edlib {
         static inline Word* buildPeq(const int alphabetLength,
                                      const AlphabetIdx* query,
                                      const int queryLength,
-                                     const EqualityDefinition<AlphabetIdx> &equalityDefinition);
+                                     const EqualityDefinition<AlphabetIdx>& equalityDefinition);
     }
 
 }
@@ -425,7 +425,7 @@ namespace edlib{
          * @param [out] hout  Will be +1, 0 or -1.
          */
         static inline int calculateBlock(Word Pv, Word Mv, Word Eq, const int hin,
-                                         Word &PvOut, Word &MvOut) {
+                                         Word& PvOut, Word& MvOut) {
             // hin can be 1, -1 or 0.
             // 1  -> 00...01
             // 0  -> 00...00
