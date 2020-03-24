@@ -162,15 +162,11 @@ edlib::EdlibAlignResult edlib::edlibAlign(const Element* const queryOriginal, co
     result.numLocations = 0;
     result.alignment = NULL;
     result.alignmentLength = 0;
-    result.alphabetLength = 0;
 
     /*------------ TRANSFORM SEQUENCES AND RECOGNIZE ALPHABET -----------*/
     AlphabetIdx* query, * target;
     unordered_map<Element,AlphabetIdx> elementToAlphabetIdx = transformSequences<Element, AlphabetIdx>(queryOriginal, queryLength, targetOriginal, targetLength,
                                                                                            &query, &target);
-    result.alphabetLength = static_cast<int>(elementToAlphabetIdx.size());
-    /*-------------------------------------------------------*/
-
     // Handle special situation when at least one of the sequences has length 0.
     if (queryLength == 0 || targetLength == 0) {
         if (config.mode == EDLIB_MODE_NW) {
