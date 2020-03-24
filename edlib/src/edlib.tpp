@@ -19,11 +19,11 @@ namespace edlib {
 
         // Data needed to find alignment.
         struct AlignmentData {
-            Word *Ps;
-            Word *Ms;
-            int *scores;
-            int *firstBlocks;
-            int *lastBlocks;
+            Word* Ps;
+            Word* Ms;
+            int* scores;
+            int* firstBlocks;
+            int* lastBlocks;
 
             AlignmentData(int maxNumBlocks, int targetLength) {
                 // We build a complete table and mark first and last block for each column
@@ -94,53 +94,53 @@ namespace edlib {
         };
 
         template<class AlphabetIdx>
-        static int myersCalcEditDistanceSemiGlobal(const Word *Peq, int W, int maxNumBlocks,
+        static int myersCalcEditDistanceSemiGlobal(const Word* Peq, int W, int maxNumBlocks,
                                                    int queryLength,
-                                                   const AlphabetIdx *target, int targetLength,
+                                                   const AlphabetIdx* target, int targetLength,
                                                    int k, EdlibAlignMode mode,
-                                                   int *bestScore_, int **positions_, int *numPositions_);
+                                                   int* bestScore_, int** positions_, int* numPositions_);
 
         template<class AlphabetIdx>
-        static int myersCalcEditDistanceNW(const Word *Peq, int W, int maxNumBlocks,
+        static int myersCalcEditDistanceNW(const Word* Peq, int W, int maxNumBlocks,
                                            int queryLength,
-                                           const AlphabetIdx *target, int targetLength,
-                                           int k, int *bestScore_,
-                                           int *position_, bool findAlignment,
-                                           AlignmentData **alignData, int targetStopPosition);
+                                           const AlphabetIdx* target, int targetLength,
+                                           int k, int* bestScore_,
+                                           int* position_, bool findAlignment,
+                                           AlignmentData** alignData, int targetStopPosition);
 
         template<class AlphabetIdx>
         static int obtainAlignment(
-                const AlphabetIdx *query, const AlphabetIdx *rQuery, int queryLength,
-                const AlphabetIdx *target, const AlphabetIdx *rTarget, int targetLength,
+                const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
+                const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
                 const EqualityDefinition<AlphabetIdx> &equalityDefinition, int alphabetLength, int bestScore,
-                unsigned char **alignment, int *alignmentLength);
+                unsigned char** alignment, int* alignmentLength);
 
         template<class AlphabetIdx>
         static int obtainAlignmentHirschberg(
-                const AlphabetIdx *query, const AlphabetIdx *rQuery, int queryLength,
-                const AlphabetIdx *target, const AlphabetIdx *rTarget, int targetLength,
+                const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
+                const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
                 const EqualityDefinition<AlphabetIdx> &equalityDefinition, int alphabetLength, int bestScore,
-                unsigned char **alignment, int *alignmentLength);
+                unsigned char** alignment, int* alignmentLength);
 
         static int obtainAlignmentTraceback(int queryLength, int targetLength,
-                                            int bestScore, const AlignmentData *alignData,
-                                            unsigned char **alignment, int *alignmentLength);
+                                            int bestScore, const AlignmentData* alignData,
+                                            unsigned char** alignment, int* alignmentLength);
 
         template<class Element, class AlphabetIdx>
-        static unordered_map<Element, AlphabetIdx> transformSequences(const Element *queryOriginal, int queryLength,
-                                                                      const Element *targetOriginal, int targetLength,
-                                                                      AlphabetIdx **queryTransformed,
-                                                                      AlphabetIdx **targetTransformed);
+        static unordered_map<Element, AlphabetIdx> transformSequences(const Element* queryOriginal, int queryLength,
+                                                                      const Element* targetOriginal, int targetLength,
+                                                                      AlphabetIdx** queryTransformed,
+                                                                      AlphabetIdx** targetTransformed);
 
 
         static inline int ceilDiv(int x, int y);
 
         template<class AlphabetIdx>
-        static inline AlphabetIdx *createReverseCopy(const AlphabetIdx *seq, int length);
+        static inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
 
         template<class AlphabetIdx>
-        static inline Word *buildPeq(const int alphabetLength,
-                                     const AlphabetIdx *query,
+        static inline Word* buildPeq(const int alphabetLength,
+                                     const AlphabetIdx* query,
                                      const int queryLength,
                                      const EqualityDefinition<AlphabetIdx> &equalityDefinition);
     }
@@ -368,7 +368,7 @@ char* edlib::edlibAlignmentToCigar(const unsigned char* const alignment, const i
  * NOTICE: free returned array with delete[]!
  */
 template <class AlphabetIdx>
-static inline edlib::internal::Word* edlib::internal::buildPeq(const int alphabetLength, const AlphabetIdx *query,
+static inline edlib::internal::Word* edlib::internal::buildPeq(const int alphabetLength, const AlphabetIdx* query,
                                                                const int queryLength,
                                                                const EqualityDefinition<AlphabetIdx> &equalityDefinition){
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
@@ -500,7 +500,7 @@ namespace edlib{
          * @param [in] block
          * @param [out] dest  Array into which cell values are written. Must have size of at least WORD_SIZE.
          */
-        static inline void readBlock(const Block block, int *const dest) {
+        static inline void readBlock(const Block block, int* const dest) {
             int score = block.score;
             Word mask = HIGH_BIT_MASK;
             for (int i = 0; i < WORD_SIZE - 1; i++) {
@@ -517,7 +517,7 @@ namespace edlib{
          * @param [in] block
          * @param [out] dest  Array into which cell values are written. Must have size of at least WORD_SIZE.
          */
-        static inline void readBlockReverse(const Block block, int *const dest) {
+        static inline void readBlockReverse(const Block block, int* const dest) {
             int score = block.score;
             Word mask = HIGH_BIT_MASK;
             for (int i = 0; i < WORD_SIZE - 1; i++) {
@@ -577,7 +577,7 @@ static int edlib::internal::myersCalcEditDistanceSemiGlobal(
     // lastBlock is 0-based index of last block in Ukkonen band.
     int firstBlock = 0;
     int lastBlock = min(ceilDiv(k + 1, WORD_SIZE), maxNumBlocks) - 1; // y in Myers
-    Block *bl; // Current block
+    Block* bl; // Current block
 
     Block* blocks = new Block[maxNumBlocks];
 

@@ -23,7 +23,7 @@ namespace edlib {
          * Global method. This is the standard method.
          * Useful when you want to find out how similar is first sequence to second sequence.
          */
-                EDLIB_MODE_NW,
+        EDLIB_MODE_NW,
         /**
          * Prefix method. Similar to global method, but with a small twist - gap at query end is not penalized.
          * What that means is that deleting elements from the end of second sequence is "free"!
@@ -31,7 +31,7 @@ namespace edlib {
          * of second sequence is "free" and does not count into total edit distance. This method is appropriate
          * when you want to find out how well first sequence fits at the beginning of second sequence.
          */
-                EDLIB_MODE_SHW,
+        EDLIB_MODE_SHW,
         /**
          * Infix method. Similar as prefix method, but with one more twist - gaps at query end and start are
          * not penalized. What that means is that deleting elements from the start and end of second sequence is "free"!
@@ -43,7 +43,7 @@ namespace edlib {
          * but slightly scrambled, you could use this method to discover how scrambled it is and where it fits in
          * that text. In bioinformatics, this method is appropriate for aligning read to a sequence.
          */
-                EDLIB_MODE_HW
+        EDLIB_MODE_HW
     } EdlibAlignMode;
 
     /**
@@ -130,7 +130,7 @@ namespace edlib {
      * @return Configuration object filled with given parameters.
      */
     EdlibAlignConfig edlibNewAlignConfig(int k, EdlibAlignMode mode, EdlibAlignTask task,
-                                         EdlibEqualityPair *additionalEqualities,
+                                         EdlibEqualityPair* additionalEqualities,
                                          int additionalEqualitiesLength);
 
     /**
@@ -160,7 +160,7 @@ namespace edlib {
          * Set to NULL if edit distance is larger than k.
          * If you do not free whole result object using edlibFreeAlignResult(), do not forget to use free().
          */
-        int *endLocations;
+        int* endLocations;
 
         /**
          * Array of zero-based positions in target where optimal alignment paths start,
@@ -169,7 +169,7 @@ namespace edlib {
          * Set to NULL if not calculated or if edit distance is larger than k.
          * If you do not free whole result object using edlibFreeAlignResult(), do not forget to use free().
          */
-        int *startLocations;
+        int* startLocations;
 
         /**
          * Number of end (and start) locations.
@@ -188,7 +188,7 @@ namespace edlib {
          * If gaps are not penalized, they are not in alignment.
          * If you do not free whole result object using edlibFreeAlignResult(), do not forget to use free().
          */
-        unsigned char *alignment;
+        unsigned char* alignment;
 
         /**
          * Length of alignment.
@@ -225,8 +225,8 @@ namespace edlib {
      *          Make sure to clean up the object using edlibFreeAlignResult() or by manually freeing needed members.
      */
     template<class Element, class AlphabetIdx=uint32_t>
-    EdlibAlignResult edlibAlign(const Element *query, int queryLength,
-                                const Element *target, int targetLength,
+    EdlibAlignResult edlibAlign(const Element* query, int queryLength,
+                                const Element* target, int targetLength,
                                 const EdlibAlignConfig config);
 
 
@@ -249,7 +249,7 @@ namespace edlib {
      *     Needed memory is allocated and given pointer is set to it.
      *     Do not forget to free it later using free()!
      */
-    char *edlibAlignmentToCigar(const unsigned char *alignment, int alignmentLength,
+    char* edlibAlignmentToCigar(const unsigned char* alignment, int alignmentLength,
                                 EdlibCigarFormat cigarFormat);
 }
 
