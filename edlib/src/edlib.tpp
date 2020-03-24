@@ -13,145 +13,145 @@ using namespace std;
 namespace edlib {
 
 namespace internal {
-        typedef uint64_t Word;
-        const int WORD_SIZE = sizeof(Word) * 8; // Size of Word in bits
-        const Word WORD_1 = static_cast<Word>(1);
-        const Word HIGH_BIT_MASK = WORD_1 << (WORD_SIZE - 1);  // 100..00
 
-        // Data needed to find alignment.
-        struct AlignmentData {
-            Word* Ps;
-            Word* Ms;
-            int* scores;
-            int* firstBlocks;
-            int* lastBlocks;
+typedef uint64_t Word;
+const int WORD_SIZE = sizeof(Word) * 8; // Size of Word in bits
+const Word WORD_1 = static_cast<Word>(1);
+const Word HIGH_BIT_MASK = WORD_1 << (WORD_SIZE - 1);  // 100..00
 
-            AlignmentData(int maxNumBlocks, int targetLength) {
-                // We build a complete table and mark first and last block for each column
-                // (because algorithm is banded so only part of each columns is used).
-                // TODO: do not build a whole table, but just enough blocks for each column.
-                Ps = new Word[maxNumBlocks * targetLength];
-                Ms = new Word[maxNumBlocks * targetLength];
-                scores = new int[maxNumBlocks * targetLength];
-                firstBlocks = new int[targetLength];
-                lastBlocks = new int[targetLength];
-            }
+// Data needed to find alignment.
+struct AlignmentData {
+    Word* Ps;
+    Word* Ms;
+    int* scores;
+    int* firstBlocks;
+    int* lastBlocks;
 
-            ~AlignmentData() {
-                delete[] Ps;
-                delete[] Ms;
-                delete[] scores;
-                delete[] firstBlocks;
-                delete[] lastBlocks;
-            }
-        };
-
-        struct Block {
-            Word P;  // Pvin
-            Word M;  // Mvin
-            int score; // score of last cell in block;
-
-            Block() {}
-
-            Block(Word p, Word m, int s) : P(p), M(m), score(s) {}
-        };
-
-
-        /**
-         * Defines equality relation on alphabet characters.
-         * By default each character is always equal only to itself, but you can also provide additional equalities.
-         */
-        template<class AlphabetIdx>
-        class EqualityDefinition {
-        public:/*
-            EqualityDefinition(const string& alphabet,
-                               const EdlibEqualityPair* additionalEqualities = NULL,
-                               const int additionalEqualitiesLength = 0) {
-                for (int i = 0; i < static_cast<int>(alphabet.size()); i++) {
-                    for (int j = 0; j < static_cast<int>(alphabet.size()); j++) {
-                        matrix[i][j] = (i == j);
-                    }
-                }
-                if (additionalEqualities != NULL) {
-                    for (int i = 0; i < additionalEqualitiesLength; i++) {
-                        size_t firstTransformed = alphabet.find(additionalEqualities[i].first);
-                        size_t secondTransformed = alphabet.find(additionalEqualities[i].second);
-                        if (firstTransformed != string::npos && secondTransformed != string::npos) {
-                            matrix[firstTransformed][secondTransformed] = matrix[secondTransformed][firstTransformed] = true;
-                        }
-                    }
-                }
-            }*/
-
-            /**
-             * @param a  Element from transformed sequence.
-             * @param b  Element from transformed sequence.
-             * @return True if a and b are defined as equal, false otherwise.
-             */
-            // TODO: We need to implement areEqual later (to support additional equalities)
-            bool areEqual(AlphabetIdx a, AlphabetIdx b) const {
-                return a == b;
-            }
-        };
-
-        template<class AlphabetIdx>
-        int myersCalcEditDistanceSemiGlobal(const Word* Peq, int W, int maxNumBlocks,
-                                                   int queryLength,
-                                                   const AlphabetIdx* target, int targetLength,
-                                                   int k, EdlibAlignMode mode,
-                                                   int* bestScore_, int** positions_, int* numPositions_);
-
-        template<class AlphabetIdx>
-        int myersCalcEditDistanceNW(const Word* Peq, int W, int maxNumBlocks,
-                                           int queryLength,
-                                           const AlphabetIdx* target, int targetLength,
-                                           int k, int* bestScore_,
-                                           int* position_, bool findAlignment,
-                                           AlignmentData** alignData, int targetStopPosition);
-
-        template<class AlphabetIdx>
-        int obtainAlignment(
-                const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
-                const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
-                const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
-                unsigned char** alignment, int* alignmentLength);
-
-        template<class AlphabetIdx>
-        int obtainAlignmentHirschberg(
-                const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
-                const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
-                const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
-                unsigned char** alignment, int* alignmentLength);
-
-        int obtainAlignmentTraceback(int queryLength, int targetLength,
-                                            int bestScore, const AlignmentData* alignData,
-                                            unsigned char** alignment, int* alignmentLength);
-
-        template<class Element, class AlphabetIdx>
-        unordered_map<Element, AlphabetIdx> transformSequences(const Element* queryOriginal, int queryLength,
-                                                                      const Element* targetOriginal, int targetLength,
-                                                                      AlphabetIdx** queryTransformed,
-                                                                      AlphabetIdx** targetTransformed);
-
-
-        inline int ceilDiv(int x, int y);
-
-        template<class AlphabetIdx>
-        inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
-
-        template<class AlphabetIdx>
-        inline Word* buildPeq(const AlphabetIdx alphabetLength,
-                                     const AlphabetIdx* query,
-                                     const int queryLength,
-                                     const EqualityDefinition<AlphabetIdx>& equalityDefinition);
+    AlignmentData(int maxNumBlocks, int targetLength) {
+        // We build a complete table and mark first and last block for each column
+        // (because algorithm is banded so only part of each columns is used).
+        // TODO: do not build a whole table, but just enough blocks for each column.
+        Ps = new Word[maxNumBlocks * targetLength];
+        Ms = new Word[maxNumBlocks * targetLength];
+        scores = new int[maxNumBlocks * targetLength];
+        firstBlocks = new int[targetLength];
+        lastBlocks = new int[targetLength];
     }
 
-}
+    ~AlignmentData() {
+        delete[] Ps;
+        delete[] Ms;
+        delete[] scores;
+        delete[] firstBlocks;
+        delete[] lastBlocks;
+    }
+};
+
+struct Block {
+    Word P;  // Pvin
+    Word M;  // Mvin
+    int score; // score of last cell in block;
+
+    Block() {}
+
+    Block(Word p, Word m, int s) : P(p), M(m), score(s) {}
+};
+
+
+/**
+ * Defines equality relation on alphabet characters.
+ * By default each character is always equal only to itself, but you can also provide additional equalities.
+ */
+template<class AlphabetIdx>
+class EqualityDefinition {
+public:/*
+    EqualityDefinition(const string& alphabet,
+                       const EdlibEqualityPair* additionalEqualities = NULL,
+                       const int additionalEqualitiesLength = 0) {
+        for (int i = 0; i < static_cast<int>(alphabet.size()); i++) {
+            for (int j = 0; j < static_cast<int>(alphabet.size()); j++) {
+                matrix[i][j] = (i == j);
+            }
+        }
+        if (additionalEqualities != NULL) {
+            for (int i = 0; i < additionalEqualitiesLength; i++) {
+                size_t firstTransformed = alphabet.find(additionalEqualities[i].first);
+                size_t secondTransformed = alphabet.find(additionalEqualities[i].second);
+                if (firstTransformed != string::npos && secondTransformed != string::npos) {
+                    matrix[firstTransformed][secondTransformed] = matrix[secondTransformed][firstTransformed] = true;
+                }
+            }
+        }
+    }*/
+
+    /**
+     * @param a  Element from transformed sequence.
+     * @param b  Element from transformed sequence.
+     * @return True if a and b are defined as equal, false otherwise.
+     */
+    // TODO: We need to implement areEqual later (to support additional equalities)
+    bool areEqual(AlphabetIdx a, AlphabetIdx b) const {
+        return a == b;
+    }
+};
+
+template<class AlphabetIdx>
+int myersCalcEditDistanceSemiGlobal(const Word* Peq, int W, int maxNumBlocks,
+                                           int queryLength,
+                                           const AlphabetIdx* target, int targetLength,
+                                           int k, EdlibAlignMode mode,
+                                           int* bestScore_, int** positions_, int* numPositions_);
+
+template<class AlphabetIdx>
+int myersCalcEditDistanceNW(const Word* Peq, int W, int maxNumBlocks,
+                                   int queryLength,
+                                   const AlphabetIdx* target, int targetLength,
+                                   int k, int* bestScore_,
+                                   int* position_, bool findAlignment,
+                                   AlignmentData** alignData, int targetStopPosition);
+
+template<class AlphabetIdx>
+int obtainAlignment(
+        const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
+        const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
+        const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
+        unsigned char** alignment, int* alignmentLength);
+
+template<class AlphabetIdx>
+int obtainAlignmentHirschberg(
+        const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
+        const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
+        const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
+        unsigned char** alignment, int* alignmentLength);
+
+int obtainAlignmentTraceback(int queryLength, int targetLength,
+                                    int bestScore, const AlignmentData* alignData,
+                                    unsigned char** alignment, int* alignmentLength);
+
+template<class Element, class AlphabetIdx>
+unordered_map<Element, AlphabetIdx> transformSequences(const Element* queryOriginal, int queryLength,
+                                                              const Element* targetOriginal, int targetLength,
+                                                              AlphabetIdx** queryTransformed,
+                                                              AlphabetIdx** targetTransformed);
+
+inline int ceilDiv(int x, int y);
+
+template<class AlphabetIdx>
+inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
+
+template<class AlphabetIdx>
+inline Word* buildPeq(const AlphabetIdx alphabetLength,
+                             const AlphabetIdx* query,
+                             const int queryLength,
+                             const EqualityDefinition<AlphabetIdx>& equalityDefinition);
+
+} // namespace internal
+
 /**
  * Main edlib method.
  */
 template <class Element, class AlphabetIdx>
-edlib::EdlibAlignResult edlib::edlibAlign(const Element* const queryOriginal, const int queryLength,
+EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryLength,
                             const Element* const targetOriginal, const int targetLength,
                             const EdlibAlignConfig config) {
     using namespace internal;
@@ -307,7 +307,7 @@ edlib::EdlibAlignResult edlib::edlibAlign(const Element* const queryOriginal, co
     return result;
 }
 
-char* edlib::edlibAlignmentToCigar(const unsigned char* const alignment, const int alignmentLength,
+char* edlibAlignmentToCigar(const unsigned char* const alignment, const int alignmentLength,
                             const EdlibCigarFormat cigarFormat) {
     if (cigarFormat != EDLIB_CIGAR_EXTENDED && cigarFormat != EDLIB_CIGAR_STANDARD) {
         return 0;
@@ -358,6 +358,8 @@ char* edlib::edlibAlignmentToCigar(const unsigned char* const alignment, const i
     return cigar_;
 }
 
+namespace internal {
+
 /**
  * Build Peq table for given query and alphabet.
  * Peq is table of dimensions alphabetLength+1 x maxNumBlocks.
@@ -365,7 +367,7 @@ char* edlib::edlibAlignmentToCigar(const unsigned char* const alignment, const i
  * NOTICE: free returned array with delete[]!
  */
 template <class AlphabetIdx>
-inline edlib::internal::Word* edlib::internal::buildPeq(const AlphabetIdx alphabetLength, const AlphabetIdx* query,
+inline Word* buildPeq(const AlphabetIdx alphabetLength, const AlphabetIdx* query,
                                                                const int queryLength,
                                                                const EqualityDefinition<AlphabetIdx> &equalityDefinition){
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
@@ -398,148 +400,144 @@ inline edlib::internal::Word* edlib::internal::buildPeq(const AlphabetIdx alphab
  * Free returned array with delete[].
  */
 template <class AlphabetIdx>
-inline AlphabetIdx* edlib::internal::createReverseCopy(const AlphabetIdx* const seq, const int length) {
+inline AlphabetIdx* createReverseCopy(const AlphabetIdx* const seq, const int length) {
     AlphabetIdx* rSeq = new AlphabetIdx[length];
     for (int i = 0; i < length; i++) {
         rSeq[i] = seq[length - i - 1];
     }
     return rSeq;
 }
+/**
+ * Corresponds to Advance_Block function from Myers.
+ * Calculates one word(block), which is part of a column.
+ * Highest bit of word (one most to the left) is most bottom cell of block from column.
+ * Pv[i] and Mv[i] define vin of cell[i]: vin = cell[i] - cell[i-1].
+ * @param [in] Pv  Bitset, Pv[i] == 1 if vin is +1, otherwise Pv[i] == 0.
+ * @param [in] Mv  Bitset, Mv[i] == 1 if vin is -1, otherwise Mv[i] == 0.
+ * @param [in] Eq  Bitset, Eq[i] == 1 if match, 0 if mismatch.
+ * @param [in] hin  Will be +1, 0 or -1.
+ * @param [out] PvOut  Bitset, PvOut[i] == 1 if vout is +1, otherwise PvOut[i] == 0.
+ * @param [out] MvOut  Bitset, MvOut[i] == 1 if vout is -1, otherwise MvOut[i] == 0.
+ * @param [out] hout  Will be +1, 0 or -1.
+ */
+inline int calculateBlock(Word Pv, Word Mv, Word Eq, const int hin,
+                                 Word& PvOut, Word& MvOut) {
+    // hin can be 1, -1 or 0.
+    // 1  -> 00...01
+    // 0  -> 00...00
+    // -1 -> 11...11 (2-complement)
 
-namespace edlib{
-    namespace internal {
-        /**
-         * Corresponds to Advance_Block function from Myers.
-         * Calculates one word(block), which is part of a column.
-         * Highest bit of word (one most to the left) is most bottom cell of block from column.
-         * Pv[i] and Mv[i] define vin of cell[i]: vin = cell[i] - cell[i-1].
-         * @param [in] Pv  Bitset, Pv[i] == 1 if vin is +1, otherwise Pv[i] == 0.
-         * @param [in] Mv  Bitset, Mv[i] == 1 if vin is -1, otherwise Mv[i] == 0.
-         * @param [in] Eq  Bitset, Eq[i] == 1 if match, 0 if mismatch.
-         * @param [in] hin  Will be +1, 0 or -1.
-         * @param [out] PvOut  Bitset, PvOut[i] == 1 if vout is +1, otherwise PvOut[i] == 0.
-         * @param [out] MvOut  Bitset, MvOut[i] == 1 if vout is -1, otherwise MvOut[i] == 0.
-         * @param [out] hout  Will be +1, 0 or -1.
-         */
-        inline int calculateBlock(Word Pv, Word Mv, Word Eq, const int hin,
-                                         Word& PvOut, Word& MvOut) {
-            // hin can be 1, -1 or 0.
-            // 1  -> 00...01
-            // 0  -> 00...00
-            // -1 -> 11...11 (2-complement)
+    Word hinIsNeg = static_cast<Word>(hin >> 2) & WORD_1; // 00...001 if hin is -1, 00...000 if 0 or 1
 
-            Word hinIsNeg = static_cast<Word>(hin >> 2) & WORD_1; // 00...001 if hin is -1, 00...000 if 0 or 1
+    Word Xv = Eq | Mv;
+    // This is instruction below written using 'if': if (hin < 0) Eq |= (Word)1;
+    Eq |= hinIsNeg;
+    Word Xh = (((Eq & Pv) + Pv) ^ Pv) | Eq;
 
-            Word Xv = Eq | Mv;
-            // This is instruction below written using 'if': if (hin < 0) Eq |= (Word)1;
-            Eq |= hinIsNeg;
-            Word Xh = (((Eq & Pv) + Pv) ^ Pv) | Eq;
+    Word Ph = Mv | ~(Xh | Pv);
+    Word Mh = Pv & Xh;
 
-            Word Ph = Mv | ~(Xh | Pv);
-            Word Mh = Pv & Xh;
+    int hout = 0;
+    // This is instruction below written using 'if': if (Ph & HIGH_BIT_MASK) hout = 1;
+    hout = (Ph & HIGH_BIT_MASK) >> (WORD_SIZE - 1);
+    // This is instruction below written using 'if': if (Mh & HIGH_BIT_MASK) hout = -1;
+    hout -= (Mh & HIGH_BIT_MASK) >> (WORD_SIZE - 1);
 
-            int hout = 0;
-            // This is instruction below written using 'if': if (Ph & HIGH_BIT_MASK) hout = 1;
-            hout = (Ph & HIGH_BIT_MASK) >> (WORD_SIZE - 1);
-            // This is instruction below written using 'if': if (Mh & HIGH_BIT_MASK) hout = -1;
-            hout -= (Mh & HIGH_BIT_MASK) >> (WORD_SIZE - 1);
+    Ph <<= 1;
+    Mh <<= 1;
 
-            Ph <<= 1;
-            Mh <<= 1;
+    // This is instruction below written using 'if': if (hin < 0) Mh |= (Word)1;
+    Mh |= hinIsNeg;
+    // This is instruction below written using 'if': if (hin > 0) Ph |= (Word)1;
+    Ph |= static_cast<Word>((hin + 1) >> 1);
 
-            // This is instruction below written using 'if': if (hin < 0) Mh |= (Word)1;
-            Mh |= hinIsNeg;
-            // This is instruction below written using 'if': if (hin > 0) Ph |= (Word)1;
-            Ph |= static_cast<Word>((hin + 1) >> 1);
+    PvOut = Mh | ~(Xv | Ph);
+    MvOut = Ph & Xv;
 
-            PvOut = Mh | ~(Xv | Ph);
-            MvOut = Ph & Xv;
-
-            return hout;
-        }
-
-        /**
-         * Does ceiling division x / y.
-         * Note: x and y must be non-negative and x + y must not overflow.
-         */
-        inline int ceilDiv(const int x, const int y) {
-            return x % y ? x / y + 1 : x / y;
-        }
-
-        inline int min(const int x, const int y) {
-            return x < y ? x : y;
-        }
-
-        inline int max(const int x, const int y) {
-            return x > y ? x : y;
-        }
-
-        /**
-         * @param [in] block
-         * @return Values of cells in block, starting with bottom cell in block.
-         */
-        inline vector<int> getBlockCellValues(const Block block) {
-            vector<int> scores(WORD_SIZE);
-            int score = block.score;
-            Word mask = HIGH_BIT_MASK;
-            for (int i = 0; i < WORD_SIZE - 1; i++) {
-                scores[i] = score;
-                if (block.P & mask) score--;
-                if (block.M & mask) score++;
-                mask >>= 1;
-            }
-            scores[WORD_SIZE - 1] = score;
-            return scores;
-        }
-
-        /**
-         * Writes values of cells in block into given array, starting with first/top cell.
-         * @param [in] block
-         * @param [out] dest  Array into which cell values are written. Must have size of at least WORD_SIZE.
-         */
-        inline void readBlock(const Block block, int* const dest) {
-            int score = block.score;
-            Word mask = HIGH_BIT_MASK;
-            for (int i = 0; i < WORD_SIZE - 1; i++) {
-                dest[WORD_SIZE - 1 - i] = score;
-                if (block.P & mask) score--;
-                if (block.M & mask) score++;
-                mask >>= 1;
-            }
-            dest[0] = score;
-        }
-
-        /**
-         * Writes values of cells in block into given array, starting with last/bottom cell.
-         * @param [in] block
-         * @param [out] dest  Array into which cell values are written. Must have size of at least WORD_SIZE.
-         */
-        inline void readBlockReverse(const Block block, int* const dest) {
-            int score = block.score;
-            Word mask = HIGH_BIT_MASK;
-            for (int i = 0; i < WORD_SIZE - 1; i++) {
-                dest[i] = score;
-                if (block.P & mask) score--;
-                if (block.M & mask) score++;
-                mask >>= 1;
-            }
-            dest[WORD_SIZE - 1] = score;
-        }
-
-        /**
-         * @param [in] block
-         * @param [in] k
-         * @return True if all cells in block have value larger than k, otherwise false.
-         */
-        inline bool allBlockCellsLarger(const Block block, const int k) {
-            vector<int> scores = getBlockCellValues(block);
-            for (int i = 0; i < WORD_SIZE; i++) {
-                if (scores[i] <= k) return false;
-            }
-            return true;
-        }
-    }
+    return hout;
 }
+
+/**
+ * Does ceiling division x / y.
+ * Note: x and y must be non-negative and x + y must not overflow.
+ */
+inline int ceilDiv(const int x, const int y) {
+    return x % y ? x / y + 1 : x / y;
+}
+
+inline int min(const int x, const int y) {
+    return x < y ? x : y;
+}
+
+inline int max(const int x, const int y) {
+    return x > y ? x : y;
+}
+
+/**
+ * @param [in] block
+ * @return Values of cells in block, starting with bottom cell in block.
+ */
+inline vector<int> getBlockCellValues(const Block block) {
+    vector<int> scores(WORD_SIZE);
+    int score = block.score;
+    Word mask = HIGH_BIT_MASK;
+    for (int i = 0; i < WORD_SIZE - 1; i++) {
+        scores[i] = score;
+        if (block.P & mask) score--;
+        if (block.M & mask) score++;
+        mask >>= 1;
+    }
+    scores[WORD_SIZE - 1] = score;
+    return scores;
+}
+
+/**
+ * Writes values of cells in block into given array, starting with first/top cell.
+ * @param [in] block
+ * @param [out] dest  Array into which cell values are written. Must have size of at least WORD_SIZE.
+ */
+inline void readBlock(const Block block, int* const dest) {
+    int score = block.score;
+    Word mask = HIGH_BIT_MASK;
+    for (int i = 0; i < WORD_SIZE - 1; i++) {
+        dest[WORD_SIZE - 1 - i] = score;
+        if (block.P & mask) score--;
+        if (block.M & mask) score++;
+        mask >>= 1;
+    }
+    dest[0] = score;
+}
+
+/**
+ * Writes values of cells in block into given array, starting with last/bottom cell.
+ * @param [in] block
+ * @param [out] dest  Array into which cell values are written. Must have size of at least WORD_SIZE.
+ */
+inline void readBlockReverse(const Block block, int* const dest) {
+    int score = block.score;
+    Word mask = HIGH_BIT_MASK;
+    for (int i = 0; i < WORD_SIZE - 1; i++) {
+        dest[i] = score;
+        if (block.P & mask) score--;
+        if (block.M & mask) score++;
+        mask >>= 1;
+    }
+    dest[WORD_SIZE - 1] = score;
+}
+
+/**
+ * @param [in] block
+ * @param [in] k
+ * @return True if all cells in block have value larger than k, otherwise false.
+ */
+inline bool allBlockCellsLarger(const Block block, const int k) {
+    vector<int> scores = getBlockCellValues(block);
+    for (int i = 0; i < WORD_SIZE; i++) {
+        if (scores[i] <= k) return false;
+    }
+    return true;
+}
+
 
 /**
  * Uses Myers' bit-vector algorithm to find edit distance for one of semi-global alignment methods.
@@ -561,7 +559,7 @@ namespace edlib{
  */
 
 template <class AlphabetIdx>
-int edlib::internal::myersCalcEditDistanceSemiGlobal(
+int myersCalcEditDistanceSemiGlobal(
         const Word* const Peq, const int W, const int maxNumBlocks,
         const int queryLength,
         const AlphabetIdx* const target, const int targetLength,
@@ -745,7 +743,7 @@ int edlib::internal::myersCalcEditDistanceSemiGlobal(
  * @return Status.
  */
 template <class AlphabetIdx>
-int edlib::internal::myersCalcEditDistanceNW(const Word* const Peq, const int W, const int maxNumBlocks,
+int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int maxNumBlocks,
                                    const int queryLength,
                                    const AlphabetIdx* const target, const int targetLength,
                                    int k, int* const bestScore_,
@@ -960,8 +958,8 @@ int edlib::internal::myersCalcEditDistanceNW(const Word* const Peq, const int W,
  * @param [out] alignmentLength  Length of alignment.
  * @return Status code.
  */
-int edlib::internal::obtainAlignmentTraceback(const int queryLength, const int targetLength,
-                                    const int bestScore, const AlignmentData* const alignData,
+int obtainAlignmentTraceback(const int queryLength, const int targetLength,
+                                const int bestScore, const AlignmentData* const alignData,
                                     unsigned char** const alignment, int* const alignmentLength) {
     const int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
     const int W = maxNumBlocks * WORD_SIZE - queryLength;
@@ -1180,7 +1178,7 @@ int edlib::internal::obtainAlignmentTraceback(const int queryLength, const int t
  * @return Status code.
  */
 template <class AlphabetIdx>
-int edlib::internal::obtainAlignment(
+int obtainAlignment(
         const AlphabetIdx* const query, const AlphabetIdx* const rQuery, const int queryLength,
         const AlphabetIdx* const target, const AlphabetIdx* const rTarget, const int targetLength,
         const EqualityDefinition<AlphabetIdx>& equalityDefinition, const int alphabetLength, const int bestScore,
@@ -1251,7 +1249,7 @@ int edlib::internal::obtainAlignment(
  * @return Status code.
  */
 template <class AlphabetIdx>
-int edlib::internal::obtainAlignmentHirschberg(
+int obtainAlignmentHirschberg(
         const AlphabetIdx* const query, const AlphabetIdx* const rQuery, const int queryLength,
         const AlphabetIdx* const target, const AlphabetIdx* const rTarget, const int targetLength,
         const EqualityDefinition<AlphabetIdx>& equalityDefinition, const int alphabetLength, const int bestScore,
@@ -1438,7 +1436,7 @@ int edlib::internal::obtainAlignmentHirschberg(
  *          sequences.
  */
 template <class Element, class AlphabetIdx>
-unordered_map<Element, AlphabetIdx> edlib::internal::transformSequences(const Element* const queryOriginal, const int queryLength,
+unordered_map<Element, AlphabetIdx> transformSequences(const Element* const queryOriginal, const int queryLength,
                                                               const Element* const targetOriginal, const int targetLength,
                                                               AlphabetIdx** const queryTransformed,
                                                               AlphabetIdx** const targetTransformed) {
@@ -1483,7 +1481,9 @@ unordered_map<Element, AlphabetIdx> edlib::internal::transformSequences(const El
     return elementToAlphabetIdx;
 }
 
-edlib::EdlibAlignConfig edlib::edlibNewAlignConfig(int k, EdlibAlignMode mode, EdlibAlignTask task,
+} // namespace internal
+
+EdlibAlignConfig edlibNewAlignConfig(int k, EdlibAlignMode mode, EdlibAlignTask task,
                                      EdlibEqualityPair* additionalEqualities,
                                      int additionalEqualitiesLength) {
     EdlibAlignConfig config;
@@ -1495,12 +1495,14 @@ edlib::EdlibAlignConfig edlib::edlibNewAlignConfig(int k, EdlibAlignMode mode, E
     return config;
 }
 
-edlib::EdlibAlignConfig edlib::edlibDefaultAlignConfig(void) {
+EdlibAlignConfig edlibDefaultAlignConfig(void) {
     return edlibNewAlignConfig(-1, EDLIB_MODE_NW, EDLIB_TASK_DISTANCE, NULL, 0);
 }
 
-void edlib::edlibFreeAlignResult(EdlibAlignResult result) {
+void edlibFreeAlignResult(EdlibAlignResult result) {
     if (result.endLocations) free(result.endLocations);
     if (result.startLocations) free(result.startLocations);
     if (result.alignment) free(result.alignment);
 }
+
+} // namespace edlib
