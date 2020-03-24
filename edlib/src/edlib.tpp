@@ -133,13 +133,13 @@ namespace edlib {
                                                                       AlphabetIdx** targetTransformed);
 
 
-        static inline int ceilDiv(int x, int y);
+        inline int ceilDiv(int x, int y);
 
         template<class AlphabetIdx>
-        static inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
+        inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
 
         template<class AlphabetIdx>
-        static inline Word* buildPeq(const AlphabetIdx alphabetLength,
+        inline Word* buildPeq(const AlphabetIdx alphabetLength,
                                      const AlphabetIdx* query,
                                      const int queryLength,
                                      const EqualityDefinition<AlphabetIdx>& equalityDefinition);
@@ -364,7 +364,7 @@ char* edlib::edlibAlignmentToCigar(const unsigned char* const alignment, const i
  * NOTICE: free returned array with delete[]!
  */
 template <class AlphabetIdx>
-static inline edlib::internal::Word* edlib::internal::buildPeq(const AlphabetIdx alphabetLength, const AlphabetIdx* query,
+inline edlib::internal::Word* edlib::internal::buildPeq(const AlphabetIdx alphabetLength, const AlphabetIdx* query,
                                                                const int queryLength,
                                                                const EqualityDefinition<AlphabetIdx> &equalityDefinition){
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
@@ -397,7 +397,7 @@ static inline edlib::internal::Word* edlib::internal::buildPeq(const AlphabetIdx
  * Free returned array with delete[].
  */
 template <class AlphabetIdx>
-static inline AlphabetIdx* edlib::internal::createReverseCopy(const AlphabetIdx* const seq, const int length) {
+inline AlphabetIdx* edlib::internal::createReverseCopy(const AlphabetIdx* const seq, const int length) {
     AlphabetIdx* rSeq = new AlphabetIdx[length];
     for (int i = 0; i < length; i++) {
         rSeq[i] = seq[length - i - 1];
@@ -420,7 +420,7 @@ namespace edlib{
          * @param [out] MvOut  Bitset, MvOut[i] == 1 if vout is -1, otherwise MvOut[i] == 0.
          * @param [out] hout  Will be +1, 0 or -1.
          */
-        static inline int calculateBlock(Word Pv, Word Mv, Word Eq, const int hin,
+        inline int calculateBlock(Word Pv, Word Mv, Word Eq, const int hin,
                                          Word& PvOut, Word& MvOut) {
             // hin can be 1, -1 or 0.
             // 1  -> 00...01
@@ -461,15 +461,15 @@ namespace edlib{
          * Does ceiling division x / y.
          * Note: x and y must be non-negative and x + y must not overflow.
          */
-        static inline int ceilDiv(const int x, const int y) {
+        inline int ceilDiv(const int x, const int y) {
             return x % y ? x / y + 1 : x / y;
         }
 
-        static inline int min(const int x, const int y) {
+        inline int min(const int x, const int y) {
             return x < y ? x : y;
         }
 
-        static inline int max(const int x, const int y) {
+        inline int max(const int x, const int y) {
             return x > y ? x : y;
         }
 
@@ -477,7 +477,7 @@ namespace edlib{
          * @param [in] block
          * @return Values of cells in block, starting with bottom cell in block.
          */
-        static inline vector<int> getBlockCellValues(const Block block) {
+        inline vector<int> getBlockCellValues(const Block block) {
             vector<int> scores(WORD_SIZE);
             int score = block.score;
             Word mask = HIGH_BIT_MASK;
@@ -496,7 +496,7 @@ namespace edlib{
          * @param [in] block
          * @param [out] dest  Array into which cell values are written. Must have size of at least WORD_SIZE.
          */
-        static inline void readBlock(const Block block, int* const dest) {
+        inline void readBlock(const Block block, int* const dest) {
             int score = block.score;
             Word mask = HIGH_BIT_MASK;
             for (int i = 0; i < WORD_SIZE - 1; i++) {
@@ -513,7 +513,7 @@ namespace edlib{
          * @param [in] block
          * @param [out] dest  Array into which cell values are written. Must have size of at least WORD_SIZE.
          */
-        static inline void readBlockReverse(const Block block, int* const dest) {
+        inline void readBlockReverse(const Block block, int* const dest) {
             int score = block.score;
             Word mask = HIGH_BIT_MASK;
             for (int i = 0; i < WORD_SIZE - 1; i++) {
@@ -530,7 +530,7 @@ namespace edlib{
          * @param [in] k
          * @return True if all cells in block have value larger than k, otherwise false.
          */
-        static inline bool allBlockCellsLarger(const Block block, const int k) {
+        inline bool allBlockCellsLarger(const Block block, const int k) {
             vector<int> scores = getBlockCellValues(block);
             for (int i = 0; i < WORD_SIZE; i++) {
                 if (scores[i] <= k) return false;
