@@ -139,7 +139,7 @@ namespace edlib {
         static inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
 
         template<class AlphabetIdx>
-        static inline Word* buildPeq(const int alphabetLength,
+        static inline Word* buildPeq(const AlphabetIdx alphabetLength,
                                      const AlphabetIdx* query,
                                      const int queryLength,
                                      const EqualityDefinition<AlphabetIdx>& equalityDefinition);
@@ -198,7 +198,7 @@ edlib::EdlibAlignResult edlib::edlibAlign(const Element* const queryOriginal, co
     // TODO: According to the future implementation of EqualityDefinition we need to modify instantiation
     //EqualityDefinition equalityDefinition(elementToAlphabetIdx, config.additionalEqualities, config.additionalEqualitiesLength);
     EqualityDefinition<AlphabetIdx> equalityDefinition;
-    Word* Peq = buildPeq<AlphabetIdx>(static_cast<int>(elementToAlphabetIdx.size()), query, queryLength, equalityDefinition);
+    Word* Peq = buildPeq<AlphabetIdx>(static_cast<AlphabetIdx>(elementToAlphabetIdx.size()), query, queryLength, equalityDefinition);
     /*-------------------------------------------------------*/
     /*------------------ MAIN CALCULATION -------------------*/
     // TODO: Store alignment data only after k is determined? That could make things faster.
@@ -241,7 +241,7 @@ edlib::EdlibAlignResult edlib::edlibAlign(const Element* const queryOriginal, co
                 const AlphabetIdx* rTarget = createReverseCopy<AlphabetIdx>(target, targetLength);
                 const AlphabetIdx* rQuery  = createReverseCopy<AlphabetIdx>(query, queryLength);
                 // Peq for reversed query.
-                Word* rPeq = buildPeq<AlphabetIdx>(static_cast<int>(elementToAlphabetIdx.size()), rQuery, queryLength, equalityDefinition);
+                Word* rPeq = buildPeq<AlphabetIdx>(static_cast<AlphabetIdx>(elementToAlphabetIdx.size()), rQuery, queryLength, equalityDefinition);
                 for (int i = 0; i < result.numLocations; i++) {
                     int endLocation = result.endLocations[i];
                     if (endLocation == -1) {
@@ -292,7 +292,7 @@ edlib::EdlibAlignResult edlib::edlibAlign(const Element* const queryOriginal, co
             const AlphabetIdx* rQuery  = createReverseCopy<AlphabetIdx>(query, queryLength);
             obtainAlignment<AlphabetIdx>(query, rQuery, queryLength,
                                          alnTarget, rAlnTarget, alnTargetLength,
-                                         equalityDefinition, static_cast<int>(elementToAlphabetIdx.size()), result.editDistance,
+                                         equalityDefinition, static_cast<AlphabetIdx>(elementToAlphabetIdx.size()), result.editDistance,
                                          &(result.alignment), &(result.alignmentLength));
             delete[] rAlnTarget;
             delete[] rQuery;
@@ -368,7 +368,7 @@ char* edlib::edlibAlignmentToCigar(const unsigned char* const alignment, const i
  * NOTICE: free returned array with delete[]!
  */
 template <class AlphabetIdx>
-static inline edlib::internal::Word* edlib::internal::buildPeq(const int alphabetLength, const AlphabetIdx* query,
+static inline edlib::internal::Word* edlib::internal::buildPeq(const AlphabetIdx alphabetLength, const AlphabetIdx* query,
                                                                const int queryLength,
                                                                const EqualityDefinition<AlphabetIdx> &equalityDefinition){
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
