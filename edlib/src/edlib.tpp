@@ -1457,17 +1457,14 @@ static unordered_map<Element, AlphabetIdx> edlib::internal::transformSequences(c
     // Alphabet information, it is constructed on fly while transforming sequences.
     // elementToAlphabetIdx[c] is index of letter c in alphabet.
     AlphabetIdx currentSize = 0 ;
-    auto iterEnd = elementToAlphabetIdx.end();
     for (int i = 0; i < queryLength; i++) {
         Element c = queryOriginal[i];
         //get an iterator to the element, c, in the alphabet hash table
         auto iter = elementToAlphabetIdx.find(c);
-        if (iter == iterEnd) { // if the element is not inserted previously
+        if (iter == elementToAlphabetIdx.end()) { // if the element is not inserted previously
             elementToAlphabetIdx[c] = currentSize;
             (*queryTransformed)[i] = currentSize;
             currentSize++;
-            //update the iterator pointing to the end of hash table
-            iterEnd = elementToAlphabetIdx.end();
         }
         else {
             (*queryTransformed)[i] = iter->second;
@@ -1477,12 +1474,10 @@ static unordered_map<Element, AlphabetIdx> edlib::internal::transformSequences(c
         Element c = targetOriginal[i];
         //get an iterator to the element, c, in the alphabet hash table
         auto iter = elementToAlphabetIdx.find(c);
-        if (iter == iterEnd) { // if the element is not inserted previously
+        if (iter == elementToAlphabetIdx.end()) { // if the element is not inserted previously
             elementToAlphabetIdx[c] = currentSize;
             (*targetTransformed)[i] = currentSize;
             currentSize++;
-            //update the iterator pointing to the end of hash table
-            iterEnd = elementToAlphabetIdx.end();
         } else {
             (*targetTransformed)[i] = iter->second;
         }
