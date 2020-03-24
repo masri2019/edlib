@@ -11,11 +11,12 @@
 using namespace std;
 
 namespace edlib {
-    namespace internal {
+
+namespace internal {
         typedef uint64_t Word;
-        static const int WORD_SIZE = sizeof(Word) * 8; // Size of Word in bits
-        static const Word WORD_1 = static_cast<Word>(1);
-        static const Word HIGH_BIT_MASK = WORD_1 << (WORD_SIZE - 1);  // 100..00
+        const int WORD_SIZE = sizeof(Word) * 8; // Size of Word in bits
+        const Word WORD_1 = static_cast<Word>(1);
+        const Word HIGH_BIT_MASK = WORD_1 << (WORD_SIZE - 1);  // 100..00
 
         // Data needed to find alignment.
         struct AlignmentData {
@@ -94,14 +95,14 @@ namespace edlib {
         };
 
         template<class AlphabetIdx>
-        static int myersCalcEditDistanceSemiGlobal(const Word* Peq, int W, int maxNumBlocks,
+        int myersCalcEditDistanceSemiGlobal(const Word* Peq, int W, int maxNumBlocks,
                                                    int queryLength,
                                                    const AlphabetIdx* target, int targetLength,
                                                    int k, EdlibAlignMode mode,
                                                    int* bestScore_, int** positions_, int* numPositions_);
 
         template<class AlphabetIdx>
-        static int myersCalcEditDistanceNW(const Word* Peq, int W, int maxNumBlocks,
+        int myersCalcEditDistanceNW(const Word* Peq, int W, int maxNumBlocks,
                                            int queryLength,
                                            const AlphabetIdx* target, int targetLength,
                                            int k, int* bestScore_,
@@ -109,25 +110,25 @@ namespace edlib {
                                            AlignmentData** alignData, int targetStopPosition);
 
         template<class AlphabetIdx>
-        static int obtainAlignment(
+        int obtainAlignment(
                 const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
                 const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
                 const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
                 unsigned char** alignment, int* alignmentLength);
 
         template<class AlphabetIdx>
-        static int obtainAlignmentHirschberg(
+        int obtainAlignmentHirschberg(
                 const AlphabetIdx* query, const AlphabetIdx* rQuery, int queryLength,
                 const AlphabetIdx* target, const AlphabetIdx* rTarget, int targetLength,
                 const EqualityDefinition<AlphabetIdx>& equalityDefinition, int alphabetLength, int bestScore,
                 unsigned char** alignment, int* alignmentLength);
 
-        static int obtainAlignmentTraceback(int queryLength, int targetLength,
+        int obtainAlignmentTraceback(int queryLength, int targetLength,
                                             int bestScore, const AlignmentData* alignData,
                                             unsigned char** alignment, int* alignmentLength);
 
         template<class Element, class AlphabetIdx>
-        static unordered_map<Element, AlphabetIdx> transformSequences(const Element* queryOriginal, int queryLength,
+        unordered_map<Element, AlphabetIdx> transformSequences(const Element* queryOriginal, int queryLength,
                                                                       const Element* targetOriginal, int targetLength,
                                                                       AlphabetIdx** queryTransformed,
                                                                       AlphabetIdx** targetTransformed);
@@ -560,7 +561,7 @@ namespace edlib{
  */
 
 template <class AlphabetIdx>
-static int edlib::internal::myersCalcEditDistanceSemiGlobal(
+int edlib::internal::myersCalcEditDistanceSemiGlobal(
         const Word* const Peq, const int W, const int maxNumBlocks,
         const int queryLength,
         const AlphabetIdx* const target, const int targetLength,
@@ -744,7 +745,7 @@ static int edlib::internal::myersCalcEditDistanceSemiGlobal(
  * @return Status.
  */
 template <class AlphabetIdx>
-static int edlib::internal::myersCalcEditDistanceNW(const Word* const Peq, const int W, const int maxNumBlocks,
+int edlib::internal::myersCalcEditDistanceNW(const Word* const Peq, const int W, const int maxNumBlocks,
                                    const int queryLength,
                                    const AlphabetIdx* const target, const int targetLength,
                                    int k, int* const bestScore_,
@@ -959,7 +960,7 @@ static int edlib::internal::myersCalcEditDistanceNW(const Word* const Peq, const
  * @param [out] alignmentLength  Length of alignment.
  * @return Status code.
  */
-static int edlib::internal::obtainAlignmentTraceback(const int queryLength, const int targetLength,
+int edlib::internal::obtainAlignmentTraceback(const int queryLength, const int targetLength,
                                     const int bestScore, const AlignmentData* const alignData,
                                     unsigned char** const alignment, int* const alignmentLength) {
     const int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
@@ -1179,7 +1180,7 @@ static int edlib::internal::obtainAlignmentTraceback(const int queryLength, cons
  * @return Status code.
  */
 template <class AlphabetIdx>
-static int edlib::internal::obtainAlignment(
+int edlib::internal::obtainAlignment(
         const AlphabetIdx* const query, const AlphabetIdx* const rQuery, const int queryLength,
         const AlphabetIdx* const target, const AlphabetIdx* const rTarget, const int targetLength,
         const EqualityDefinition<AlphabetIdx>& equalityDefinition, const int alphabetLength, const int bestScore,
@@ -1250,7 +1251,7 @@ static int edlib::internal::obtainAlignment(
  * @return Status code.
  */
 template <class AlphabetIdx>
-static int edlib::internal::obtainAlignmentHirschberg(
+int edlib::internal::obtainAlignmentHirschberg(
         const AlphabetIdx* const query, const AlphabetIdx* const rQuery, const int queryLength,
         const AlphabetIdx* const target, const AlphabetIdx* const rTarget, const int targetLength,
         const EqualityDefinition<AlphabetIdx>& equalityDefinition, const int alphabetLength, const int bestScore,
@@ -1437,7 +1438,7 @@ static int edlib::internal::obtainAlignmentHirschberg(
  *          sequences.
  */
 template <class Element, class AlphabetIdx>
-static unordered_map<Element, AlphabetIdx> edlib::internal::transformSequences(const Element* const queryOriginal, const int queryLength,
+unordered_map<Element, AlphabetIdx> edlib::internal::transformSequences(const Element* const queryOriginal, const int queryLength,
                                                               const Element* const targetOriginal, const int targetLength,
                                                               AlphabetIdx** const queryTransformed,
                                                               AlphabetIdx** const targetTransformed) {
