@@ -92,3 +92,6 @@ endif()
 #    @ONLY)
 #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/edlib-1.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 #
+
+install(FILES edlib/include/edlib.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES edlib/src/edlib.tpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
