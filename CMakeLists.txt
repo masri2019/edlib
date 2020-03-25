@@ -44,6 +44,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# TODO: check with somebody else what is the best way to do this CMakeLists, before we merge into master.
 set(EDLIB_SOURCE_DIR edlib/src/)
 set(EDLIB_INCLUDE_DIR edlib/include/)
 include_directories(${EDLIB_INCLUDE_DIR})
