@@ -112,7 +112,7 @@ bool runRandomTests(int numTests, EdlibAlignMode mode, bool findAlignment) {
         // printf("\n");
 
         start = clock();
-        EdlibAlignResult result = edlibAlign<char, unsigned char>(
+        EdlibAlignResult result = edlibAlign(
                 query, queryLength, target, targetLength,
                 edlibNewAlignConfig(-1, mode, findAlignment ? EDLIB_TASK_PATH : EDLIB_TASK_DISTANCE, NULL, 0));
         timeEdlib += clock() - start;
@@ -166,7 +166,7 @@ bool runRandomTests(int numTests, EdlibAlignMode mode, bool findAlignment) {
 
         for (int k = max(score2 - 1, 0); k <= score2 + 1; k++) {
             int scoreExpected = score2 > k ? -1 : score2;
-            EdlibAlignResult result3 = edlibAlign<char, unsigned char>(
+            EdlibAlignResult result3 = edlibAlign(
                     query, queryLength, target, targetLength,
                     edlibNewAlignConfig(k, mode, findAlignment ? EDLIB_TASK_PATH : EDLIB_TASK_DISTANCE, NULL, 0));
             if (result3.editDistance != scoreExpected) {
@@ -224,7 +224,7 @@ bool executeTest(const char* query, int queryLength,
     calcEditDistanceSimple(query, queryLength, target, targetLength,
                            mode, &scoreSimple, &endLocationsSimple, &numLocationsSimple);
 
-    EdlibAlignResult result = edlibAlign<char, unsigned char>(query, queryLength, target, targetLength,
+    EdlibAlignResult result = edlibAlign(query, queryLength, target, targetLength,
                                          edlibNewAlignConfig(-1, mode, EDLIB_TASK_PATH, NULL, 0));
 
     if (result.editDistance != scoreSimple) {
@@ -432,7 +432,7 @@ bool test12() {
     const char* query = "GCATATCAATAAGCGGAGGA";
     const char* target = "TAACAAGGTTTCCGTAGGTGAACCTGCGGAAGGATCATTATCGAATAAACTTGATGGGTTGTCGCTGGCTTCTAGGAGCATGTGCACATCCGTCATTTTTATCCATCCACCTGTGCACCTTTTGTAGTCTTTGGAGGTAATAAGCGTGAATCTATCGAGGTCCTCTGGTCCTCGGAAAGAGGTGTTTGCCATATGGCTCGCCTTTGATACTCGCGAGTTACTCTAAGACTATGTCCTTTCATATACTACGAATGTAATAGAATGTATTCATTGGGCCTCAGTGCCTATAAAACATATACAACTTTCAGCAACGGATCTCTTGGCTCTCGCATCGATGAAGAACGCAGCGAAATGCGATAAGTAATGTGAATTGCAGAATTCAGTGAATCATCGAATCTTTGAACGCACCTTGCGCTCCTTGGTATTCCGAGGAGCATGCCTGTTTGAGTGTCATTAAATTCTCAACCCCTTCCGGTTTTTTGACTGGCTTTGGGGCTTGGATGTGGGGGATTCATTTGCGGGCCTCTGTAGAGGTCGGCTCCCCTGAAATGCATTAGTGGAACCGTTTGCGGTTACCGTCGCTGGTGTGATAACTATCTATGCCAAAGACAAACTGCTCTCTGATAGTTCTGCTTCTAACCGTCCATTTATTGGACAACATTATTATGAACACTTGACCTCAAATCAGGTAGGACTACCCGCTGAACTTAAGCATATCAATAAGCGGAGGAAAAGAAACTAACAAGGATTCCCCTAGTAACTGCGAGTGAAGCGGGAAAAGCTCAAATTTAAAATCTGGCGGTCTTTGGCCGTCCGAGTTGTAATCTAGAGAAGCGACACCCGCGCTGGACCGTGTACAAGTCTCCTGGAATGGAGCGTCATAGAGGGTGAGAATCCCGTCTCTGACACGGACTACCAGGGCTTTGTGGTGCGCTCTCAAAGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGTGGTAAATTCCATCTAAAGCTAAATATTGGCGAGAGACCGATAGCGAACAAGTACCGTGAGGGAAAGATGAAAAGAACTTTGGAAAGAGAGTTAAACAGTACGTGAAATTGCTGAAAGGGAAACGCTTGAAGTCAGTCGCGTTGGCCGGGGATCAGCCTCGCTTTTGCGTGGTGTATTTCCTGGTTGACGGGTCAGCATCAATTTTGACCGCTGGAAAAGGACTTGGGGAATGTGGCATCTTCGGATGTGTTATAGCCCTTTGTCGCATACGGCGGTTGGGATTGAGGAACTCAGCACGCCGCAAGGCCGGGTTTCGACCACGTTCGTGCTTAGGATGCTGGCATAATGGCTTTAATCGACCCGTCTTGAAACACGGACCAAGGAGTCTAACATGCCTGCGAGTGTTTGGGTGGAAAACCCGAGCGCGTAATGAAAGTGAAAGTTGAGATCCCTGTCGTGGGGAGCATCGACGCCCGGACCAGAACTTTTGGGACGGATCTGCGGTAGAGCATGTATGTTGGGACCCGAAAGATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGTAGCGATTCTGACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACCATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGAAACTCATATCAGATTTATGTGGTAAAGCGAATGATTAGAGGCCTTGGGGTTGAAACAACCTTAACCTATTCTCAAACTTTAAATATGTAAGAACGAGCCGTTTCTTGATTGAACCGCTCGGCGATTGAGAGTTTCTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCGAGGTTAAGGTGCCGGAATTCACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGACAGCAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGAGTGTGTAACAACTCACCTGCCGAATGAACTAGCCCTGAAAATGGATGGCGCTTAAGCGTGATACCCATACCTCGCCGTCAGCGTTGAAGTGACGCGCTGACGAGTAGGCAGGCGTGGAGGTCAGTGAAGAAGCCTTGGCAGTGATGCTGGGTGAAACGGCCTCC";
 
-    EdlibAlignResult result = edlibAlign<char, unsigned char>(query, static_cast<int>(std::strlen(query)),
+    EdlibAlignResult result = edlibAlign(query, static_cast<int>(std::strlen(query)),
                                          target, static_cast<int>(std::strlen(target)),
                                          edlibNewAlignConfig(-1, EDLIB_MODE_HW,EDLIB_TASK_LOC, additionalEqualities, 24));
     bool pass = result.status == EDLIB_STATUS_OK && result.editDistance == 0;
@@ -449,7 +449,7 @@ bool test13() {
     const char* query = "AA";
     const char* target = "B";
 
-    EdlibAlignResult result = edlibAlign<char, unsigned char>(query, static_cast<int>(std::strlen(query)),
+    EdlibAlignResult result = edlibAlign(query, static_cast<int>(std::strlen(query)),
                                          target, static_cast<int>(std::strlen(target)),
                                          edlibNewAlignConfig(-1, EDLIB_MODE_HW, EDLIB_TASK_PATH, NULL, 0));
     bool pass = result.status == EDLIB_STATUS_OK && result.editDistance == 2;
@@ -466,7 +466,7 @@ bool test14() {
     const char* query = "AA";
     const char* target = "B";
 
-    EdlibAlignResult result = edlibAlign<char, unsigned char>(query, static_cast<int>(std::strlen(query)),
+    EdlibAlignResult result = edlibAlign(query, static_cast<int>(std::strlen(query)),
                                          target, static_cast<int>(std::strlen(target)),
                                          edlibNewAlignConfig(-1, EDLIB_MODE_SHW, EDLIB_TASK_PATH, NULL, 0));
     bool pass = result.status == EDLIB_STATUS_OK && result.editDistance == 2;
@@ -480,7 +480,7 @@ bool test15() {
     const char* query = "AAABBB";
     const char* target = "BBBC";
 
-    EdlibAlignResult result = edlibAlign<char, unsigned char>(query, static_cast<int>(std::strlen(query)),
+    EdlibAlignResult result = edlibAlign(query, static_cast<int>(std::strlen(query)),
                                          target, static_cast<int>(std::strlen(target)),
                                          edlibNewAlignConfig(-1, EDLIB_MODE_HW, EDLIB_TASK_LOC, NULL, 0));
     bool pass = result.status == EDLIB_STATUS_OK && result.editDistance == 3;
@@ -494,7 +494,7 @@ bool test16() {
     const char* query = "BBBAAA";
     const char* target = "CBBB";
 
-    EdlibAlignResult result = edlibAlign<char, unsigned char>(query, static_cast<int>(std::strlen(query)),
+    EdlibAlignResult result = edlibAlign(query, static_cast<int>(std::strlen(query)),
                                          target, static_cast<int>(std::strlen(target)),
                                          edlibNewAlignConfig(-1, EDLIB_MODE_HW, EDLIB_TASK_LOC, NULL, 0));
     bool pass = result.status == EDLIB_STATUS_OK && result.editDistance == 3;
@@ -541,7 +541,7 @@ bool testCustomEqualityRelation() {
     const char* target = "GTGAGTCATCGAATCTTTGAACGCACCTTGCGCTCCTTGGT";
 
     printf("Degenerate nucleotides (HW): ");
-    EdlibAlignResult result = edlibAlign<char, unsigned char>(query, 19, target, 41,
+    EdlibAlignResult result = edlibAlign(query, 19, target, 41,
                                          edlibNewAlignConfig(-1, EDLIB_MODE_HW, EDLIB_TASK_PATH,
                                                              additionalEqualities, 6));
     bool pass = result.status == EDLIB_STATUS_OK && result.editDistance == 1;
