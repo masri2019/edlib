@@ -97,18 +97,17 @@ public:/*
 
 template<class AlphabetIdx>
 int myersCalcEditDistanceSemiGlobal(const Word* Peq, int W, int maxNumBlocks,
-                                           int queryLength,
-                                           const AlphabetIdx* target, int targetLength,
-                                           int k, EdlibAlignMode mode,
-                                           int* bestScore_, int** positions_, int* numPositions_);
+                                    int queryLength,
+                                    const AlphabetIdx* target, int targetLength,
+                                    int k, EdlibAlignMode mode,
+                                    int* bestScore_, int** positions_, int* numPositions_);
 
 template<class AlphabetIdx>
 int myersCalcEditDistanceNW(const Word* Peq, int W, int maxNumBlocks,
-                                   int queryLength,
-                                   const AlphabetIdx* target, int targetLength,
-                                   int k, int* bestScore_,
-                                   int* position_, bool findAlignment,
-                                   AlignmentData** alignData, int targetStopPosition);
+                            int queryLength, const AlphabetIdx* target, int targetLength,
+                            int k, int* bestScore_,
+                            int* position_, bool findAlignment,
+                            AlignmentData** alignData, int targetStopPosition);
 
 template<class AlphabetIdx>
 int obtainAlignment(
@@ -125,14 +124,15 @@ int obtainAlignmentHirschberg(
         unsigned char** alignment, int* alignmentLength);
 
 int obtainAlignmentTraceback(int queryLength, int targetLength,
-                                    int bestScore, const AlignmentData* alignData,
-                                    unsigned char** alignment, int* alignmentLength);
+                             int bestScore, const AlignmentData* alignData,
+                             unsigned char** alignment, int* alignmentLength);
 
 template<class Element, class AlphabetIdx>
-unordered_map<Element, AlphabetIdx> transformSequences(const Element* queryOriginal, int queryLength,
-                                                              const Element* targetOriginal, int targetLength,
-                                                              AlphabetIdx** queryTransformed,
-                                                              AlphabetIdx** targetTransformed);
+unordered_map<Element, AlphabetIdx> transformSequences(
+        const Element* queryOriginal, int queryLength,
+        const Element* targetOriginal, int targetLength,
+        AlphabetIdx** queryTransformed,
+        AlphabetIdx** targetTransformed);
 
 inline int ceilDiv(int x, int y);
 
@@ -140,10 +140,10 @@ template<class AlphabetIdx>
 inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
 
 template<class AlphabetIdx>
-inline Word* buildPeq(const AlphabetIdx alphabetLength,
-                             const AlphabetIdx* query,
-                             const int queryLength,
-                             const EqualityDefinition<AlphabetIdx>& equalityDefinition);
+inline Word* buildPeq(
+        const AlphabetIdx alphabetLength,const AlphabetIdx* query,
+        const int queryLength,
+        const EqualityDefinition<AlphabetIdx>& equalityDefinition);
 
 } // namespace internal
 
@@ -367,9 +367,10 @@ namespace internal {
  * NOTICE: free returned array with delete[]!
  */
 template <class AlphabetIdx>
-inline Word* buildPeq(const AlphabetIdx alphabetLength, const AlphabetIdx* query,
-                                                               const int queryLength,
-                                                               const EqualityDefinition<AlphabetIdx> &equalityDefinition){
+inline Word* buildPeq(const AlphabetIdx alphabetLength,
+                      const AlphabetIdx* query,
+                      const int queryLength,
+                      const EqualityDefinition<AlphabetIdx> &equalityDefinition){
     int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
     // table of dimensions alphabetLength+1 x maxNumBlocks. Last symbol is wildcard.
     Word* Peq = new Word[(alphabetLength + 1) * maxNumBlocks];
@@ -743,12 +744,13 @@ int myersCalcEditDistanceSemiGlobal(
  * @return Status.
  */
 template <class AlphabetIdx>
-int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int maxNumBlocks,
-                                   const int queryLength,
-                                   const AlphabetIdx* const target, const int targetLength,
-                                   int k, int* const bestScore_,
-                                   int* const position_, const bool findAlignment,
-                                   AlignmentData** const alignData, const int targetStopPosition) {
+int myersCalcEditDistanceNW(
+        const Word* const Peq, const int W, const int maxNumBlocks,
+        const int queryLength,
+        const AlphabetIdx* const target, const int targetLength,
+        int k, int* const bestScore_,
+        int* const position_, const bool findAlignment,
+        AlignmentData** const alignData, const int targetStopPosition) {
     if (targetStopPosition > -1 && findAlignment) {
         // They can not be both set at the same time!
         return EDLIB_STATUS_ERROR;
@@ -817,8 +819,8 @@ int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int maxNum
         // If block is not beneath band, calculate next block. Only next because others are certainly beneath band.
         if (lastBlock + 1 < maxNumBlocks
             && !(//score[lastBlock] >= k + WORD_SIZE ||  // NOTICE: this condition could be satisfied if above block also!
-                ((lastBlock + 1) * WORD_SIZE - 1
-                 > k - bl->score + 2 * WORD_SIZE - 2 - targetLength + c + queryLength))) {
+                 ((lastBlock + 1) * WORD_SIZE - 1
+                  > k - bl->score + 2 * WORD_SIZE - 2 - targetLength + c + queryLength))) {
             lastBlock++; bl++;
             bl->P = static_cast<Word>(-1); // All 1s
             bl->M = static_cast<Word>(0);
@@ -959,8 +961,8 @@ int myersCalcEditDistanceNW(const Word* const Peq, const int W, const int maxNum
  * @return Status code.
  */
 int obtainAlignmentTraceback(const int queryLength, const int targetLength,
-                                const int bestScore, const AlignmentData* const alignData,
-                                    unsigned char** const alignment, int* const alignmentLength) {
+                             const int bestScore, const AlignmentData* const alignData,
+                             unsigned char** const alignment, int* const alignmentLength) {
     const int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE);
     const int W = maxNumBlocks * WORD_SIZE - queryLength;
 
@@ -1436,10 +1438,11 @@ int obtainAlignmentHirschberg(
  *          sequences.
  */
 template <class Element, class AlphabetIdx>
-unordered_map<Element, AlphabetIdx> transformSequences(const Element* const queryOriginal, const int queryLength,
-                                                              const Element* const targetOriginal, const int targetLength,
-                                                              AlphabetIdx** const queryTransformed,
-                                                              AlphabetIdx** const targetTransformed) {
+unordered_map<Element, AlphabetIdx> transformSequences(
+        const Element* const queryOriginal, const int queryLength,
+        const Element* const targetOriginal, const int targetLength,
+        AlphabetIdx** const queryTransformed,
+        AlphabetIdx** const targetTransformed) {
     // Alphabet is constructed from letters that are present in sequences.
     // Each letter is assigned an ordinal number, starting from 0 up to alphabetLength - 1,
     // and new query and target are created in which letters are replaced with their ordinal numbers.
