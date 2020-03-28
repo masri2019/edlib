@@ -141,7 +141,8 @@ inline E* createReverseCopy(const E* seq, int length);
 
 template<class AlphabetIdx>
 inline Word* buildPeq(
-        const AlphabetIdx alphabetLength,const AlphabetIdx* query,
+        const AlphabetIdx alphabetLength,
+        const AlphabetIdx* query,
         const int queryLength,
         const EqualityDefinition<AlphabetIdx>& equalityDefinition);
 
@@ -166,8 +167,10 @@ EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryL
 
     /*------------ TRANSFORM SEQUENCES AND RECOGNIZE ALPHABET -----------*/
     AlphabetIdx* query, * target;
-    unordered_map<Element,AlphabetIdx> elementToAlphabetIdx = transformSequences<Element, AlphabetIdx>(queryOriginal, queryLength, targetOriginal, targetLength,
-                                                                                           &query, &target);
+    unordered_map<Element,AlphabetIdx> elementToAlphabetIdx =
+        transformSequences<Element, AlphabetIdx>(
+            queryOriginal, queryLength, targetOriginal, targetLength,&query, &target
+        );
     // Handle special situation when at least one of the sequences has length 0.
     if (queryLength == 0 || targetLength == 0) {
         if (config.mode == EDLIB_MODE_NW) {
@@ -289,7 +292,9 @@ EdlibAlignResult edlibAlign(const Element* const queryOriginal, const int queryL
             const AlphabetIdx* rQuery  = createReverseCopy<AlphabetIdx>(query, queryLength);
             obtainAlignment<AlphabetIdx>(query, rQuery, queryLength,
                                          alnTarget, rAlnTarget, alnTargetLength,
-                                         equalityDefinition, static_cast<AlphabetIdx>(elementToAlphabetIdx.size()), result.editDistance,
+                                         equalityDefinition,
+                                         static_cast<AlphabetIdx>(elementToAlphabetIdx.size()),
+                                         result.editDistance,
                                          &(result.alignment), &(result.alignmentLength));
             delete[] rAlnTarget;
             delete[] rQuery;
@@ -422,7 +427,7 @@ inline E* createReverseCopy(const E* const seq, const int length) {
  * @param [out] hout  Will be +1, 0 or -1.
  */
 inline int calculateBlock(Word Pv, Word Mv, Word Eq, const int hin,
-                                 Word& PvOut, Word& MvOut) {
+                          Word& PvOut, Word& MvOut) {
     // hin can be 1, -1 or 0.
     // 1  -> 00...01
     // 0  -> 00...00
@@ -1420,7 +1425,7 @@ int obtainAlignmentHirschberg(
 
 
 /**
- * Takes char query and char target, recognizes alphabet and transforms them into unsigned char sequences
+ * Takes query and target, recognizes alphabet and transforms them into index sequences
  * where elements in sequences are not any more letters of alphabet, but their index in alphabet.
  * Most of internal edlib functions expect such transformed sequences.
  * This function will allocate queryTransformed and targetTransformed, so make sure to free them when done.
@@ -1434,8 +1439,8 @@ int obtainAlignmentHirschberg(
  * @param [in] targetLength
  * @param [out] queryTransformed  It will contain values in range [0, alphabet length - 1].
  * @param [out] targetTransformed  It will contain values in range [0, alphabet length - 1].
- * @return  Alphabet as a string of unique characters, where index of each character is its value in transformed
- *          sequences.
+ * @return  Alphabet as an unordered_map having unique elements as keys and their indexes as values,
+ *          where index of each element is its value in transformed sequences.
  */
 template <class Element, class AlphabetIdx>
 unordered_map<Element, AlphabetIdx> transformSequences(
@@ -1457,7 +1462,6 @@ unordered_map<Element, AlphabetIdx> transformSequences(
     AlphabetIdx currentSize = 0 ;
     for (int i = 0; i < queryLength; i++) {
         Element c = queryOriginal[i];
-        //get an iterator to the element, c, in the alphabet hash table
         auto iter = elementToAlphabetIdx.find(c);
         if (iter == elementToAlphabetIdx.end()) { // if the element is not inserted previously
             elementToAlphabetIdx[c] = currentSize;
@@ -1470,7 +1474,6 @@ unordered_map<Element, AlphabetIdx> transformSequences(
     }
     for (int i = 0; i < targetLength; i++) {
         Element c = targetOriginal[i];
-        //get an iterator to the element, c, in the alphabet hash table
         auto iter = elementToAlphabetIdx.find(c);
         if (iter == elementToAlphabetIdx.end()) { // if the element is not inserted previously
             elementToAlphabetIdx[c] = currentSize;
