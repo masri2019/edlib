@@ -136,8 +136,8 @@ unordered_map<Element, AlphabetIdx> transformSequences(
 
 inline int ceilDiv(int x, int y);
 
-template<class AlphabetIdx>
-inline AlphabetIdx* createReverseCopy(const AlphabetIdx* seq, int length);
+template<class E>
+inline E* createReverseCopy(const E* seq, int length);
 
 template<class AlphabetIdx>
 inline Word* buildPeq(
@@ -400,9 +400,9 @@ inline Word* buildPeq(const AlphabetIdx alphabetLength,
  * Returns new sequence that is reverse of given sequence.
  * Free returned array with delete[].
  */
-template <class AlphabetIdx>
-inline AlphabetIdx* createReverseCopy(const AlphabetIdx* const seq, const int length) {
-    AlphabetIdx* rSeq = new AlphabetIdx[length];
+template <class E>
+inline E* createReverseCopy(const E* const seq, const int length) {
+    E* rSeq = new E[length];
     for (int i = 0; i < length; i++) {
         rSeq[i] = seq[length - i - 1];
     }
