@@ -12,6 +12,14 @@ using namespace std;
 
 namespace edlib {
 
+class AlphabetTooBigException: public exception{
+public:
+    const char* what() const noexcept override {
+        return "Alphabet is larger than the type you are using for it. "
+               "Larger type for AlphabetIdx should be used.";
+    }
+};
+
 namespace internal {
 
 typedef uint64_t Word;
@@ -1464,6 +1472,9 @@ unordered_map<Element, AlphabetIdx> transformSequences(
         Element c = queryOriginal[i];
         auto iter = elementToAlphabetIdx.find(c);
         if (iter == elementToAlphabetIdx.end()) { // if the element is not inserted previously
+            if (currentSize == (numeric_limits<AlphabetIdx>::max()-1)) { // -1 is because of wildcard
+                throw AlphabetTooBigException();
+            }
             elementToAlphabetIdx[c] = currentSize;
             (*queryTransformed)[i] = currentSize;
             currentSize++;
@@ -1476,6 +1487,9 @@ unordered_map<Element, AlphabetIdx> transformSequences(
         Element c = targetOriginal[i];
         auto iter = elementToAlphabetIdx.find(c);
         if (iter == elementToAlphabetIdx.end()) { // if the element is not inserted previously
+            if (currentSize == (numeric_limits<AlphabetIdx>::max()-1)) { // -1 is because of wildcard
+                throw AlphabetTooBigException();
+            }
             elementToAlphabetIdx[c] = currentSize;
             (*targetTransformed)[i] = currentSize;
             currentSize++;
